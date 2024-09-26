@@ -1,5 +1,3 @@
-// models/User.js
-
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
@@ -7,9 +5,6 @@ const UserSchema = new mongoose.Schema({
   username: { type: String, unique: true, required: true },
   passwordHash: { type: String, required: true },
   fullAccess: { type: Boolean, default: false },
-  roles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Role' }],
-  auditLogs: [{ type: mongoose.Schema.Types.ObjectId, ref: 'AuditLog' }],
-  accessControls: [{ type: mongoose.Schema.Types.ObjectId, ref: 'AccessControl' }],
 });
 
 // Password hashing middleware
