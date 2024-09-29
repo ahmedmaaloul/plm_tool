@@ -1,175 +1,100 @@
-// routes/bomRoutes.js
-
 const express = require('express');
 const router = express.Router();
-const BOM = require('../models/BOM');
-const BOMResource = require('../models/BOMResource');
-const ManufacturingProcess = require('../models/ManufacturingProcess');
 const authMiddleware = require('../middleware/authMiddleware');
 const roleMiddleware = require('../middleware/roleMiddleware');
-
 const adminMiddleware = require('../middleware/adminMiddleware');
-const AuditLog = require('../models/AuditLog');
+const bomController = require('../controllers/bomController');
+const BOM = require('../models/BOM');
+const Reference = require('../models/Reference');
+
+// Middleware to set projectId from BOM or Reference
+async function setProjectIdFromBOMOrReference(req, res, next) {
+  try {
+    const bomId = req.params.id || req.body.bomId;
+    const referenceId = req.body.referenceId;
+
+    let projectId = null;
+
+    if (bomId) {
+      const bom = await BOM.findById(bomId).populate('reference', 'project');
+      if (!bom) {
+        return res.status(404).json({ error: 'BOM not found' });
+      }
+      if (bom.reference && bom.reference.project) {
+        projectId = bom.reference.project.toString();
+      } else {
+        return res.status(400).json({ error: 'BOM is not associated with a project' });
+      }
+    } else if (referenceId) {
+      const reference = await Reference.findById(referenceId).populate('project', '_id');
+      if (!reference) {
+        return res.status(404).json({ error: 'Reference not found' });
+      }
+      if (reference.project) {
+        projectId = reference.project._id.toString();
+      } else {
+        return res.status(400).json({ error: 'Reference is not associated with a project' });
+      }
+    } else {
+      return res.status(400).json({ error: 'No BOM ID or Reference ID provided' });
+    }
+
+    // Set projectId in request params for access control
+    req.params.projectId = projectId;
+
+    next();
+  } catch (err) {
+    console.error('Error in setProjectIdFromBOMOrReference:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
 
 // Create a new BOM
-router.post('/', authMiddleware, roleMiddleware('createBOM'), async (req, res) => {
-  try {
-    const { name, referenceId } = req.body;
-
-    // Validate input
-    if (!name || !referenceId) {
-      return res.status(400).json({ error: 'Name and referenceId are required' });
-    }
-
-    // Create BOM
-    const bom = new BOM({
-      name,
-      reference: referenceId,
-    });
-
-    await bom.save();
-
-    // Create an audit log entry
-    const auditLog = new AuditLog({
-      user: req.user.userId,
-      action: `Created BOM: ${bom.name}`,
-    });
-    await auditLog.save();
-
-    res.status(201).json({ message: 'BOM created successfully', bom });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
+router.post(
+  '/',
+  authMiddleware,
+  setProjectIdFromBOMOrReference,
+  roleMiddleware('createBOM'),
+  bomController.createBOM
+);
 
 // Get all BOMs (Admin only)
-router.get('/', authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const boms = await BOM.find()
-      .populate('reference', 'code description')
-      .populate('manufacturingProcesses')
-      .populate('bomResources')
-      .populate('specifications');
-    res.json({ boms });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
+router.get('/', authMiddleware, adminMiddleware, bomController.getBOMs);
 
 // Get a BOM by ID
-router.get('/project/:projectId/bom/:id', authMiddleware,roleMiddleware('viewBOM'), async (req, res) => {
-  try {
-    const { projectId, id } = req.params;
-    const bom = await BOM.findById(id)
-      .populate('reference', 'code description')
-      .populate({
-        path: 'manufacturingProcesses',
-        populate: { path: 'processResources' },
-      })
-      .populate({
-        path: 'bomResources',
-        populate: { path: 'resource' },
-      })
-      .populate('specifications');
-
-    if (!bom) {
-      return res.status(404).json({ error: 'BOM not found' });
-    }
-
-    res.json({ bom });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
+router.get(
+  '/:id',
+  authMiddleware,
+  setProjectIdFromBOMOrReference,
+  roleMiddleware('viewBOM'),
+  bomController.getBOMById
+);
 
 // Update a BOM
-router.put('/project/:projectId/bom/:id', authMiddleware, roleMiddleware('editBOM'), async (req, res) => {
-    const { projectId, id } = req.params;
-    try {
-    const { name, referenceId } = req.body;
-    const bom = await BOM.findById(id);
-
-    if (!bom) {
-      return res.status(404).json({ error: 'BOM not found' });
-    }
-
-    // Update fields if provided
-    if (name) bom.name = name;
-    if (referenceId) bom.reference = referenceId;
-
-    await bom.save();
-
-    // Recalculate totals
-    await bom.calculateTotals();
-
-    // Create an audit log entry
-    const auditLog = new AuditLog({
-      user: req.user.userId,
-      action: `Updated BOM: ${bom.name}`,
-    });
-    await auditLog.save();
-
-    res.json({ message: 'BOM updated successfully', bom });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
+router.put(
+  '/:id',
+  authMiddleware,
+  setProjectIdFromBOMOrReference,
+  roleMiddleware('editBOM'),
+  bomController.updateBOM
+);
 
 // Delete a BOM
-router.delete('/project/:projectId/bom/:id', authMiddleware, roleMiddleware('deleteBOM'), async (req, res) => {
-    const { projectId, id } = req.params;
-    try {
-    const bom = await BOM.findByIdAndDelete(id);
-
-    if (!bom) {
-      return res.status(404).json({ error: 'BOM not found' });
-    }
-
-    // Optionally, delete related documents (manufacturing processes, resources)
-    await ManufacturingProcess.deleteMany({ bom: bom._id });
-    await BOMResource.deleteMany({ bom: bom._id });
-
-    // Create an audit log entry
-    const auditLog = new AuditLog({
-      user: req.user.userId,
-      action: `Deleted BOM: ${bom.name}`,
-    });
-    await auditLog.save();
-
-    res.json({ message: 'BOM deleted successfully' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
+router.delete(
+  '/:id',
+  authMiddleware,
+  setProjectIdFromBOMOrReference,
+  roleMiddleware('deleteBOM'),
+  bomController.deleteBOM
+);
 
 // Recalculate totals for a BOM
-router.post('/:id/recalculate', authMiddleware, async (req, res) => {
-  try {
-    const bom = await BOM.findById(req.params.id);
-
-    if (!bom) {
-      return res.status(404).json({ error: 'BOM not found' });
-    }
-
-    await bom.calculateTotals();
-
-    // Create an audit log entry
-    const auditLog = new AuditLog({
-      user: req.user.userId,
-      action: `Recalculated totals for BOM: ${bom.name}`,
-    });
-    await auditLog.save();
-
-    res.json({ message: 'BOM totals recalculated', totalCost: bom.totalCost, totalTime: bom.totalTime });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
+router.post(
+  '/:id/recalculate',
+  authMiddleware,
+  setProjectIdFromBOMOrReference,
+  roleMiddleware('editBOM'),
+  bomController.recalculateBOMTotals
+);
 
 module.exports = router;

@@ -1,19 +1,18 @@
-// models/BOM.js
-const mongoose = require('mongoose');
+import { Schema, model } from 'mongoose';
 
-const BOMSchema = new mongoose.Schema({
+const BOMSchema = new Schema({
   name: { type: String, required: true },
-  reference: { type: mongoose.Schema.Types.ObjectId, ref: 'Reference', required: true },
+  reference: { type: Schema.Types.ObjectId, ref: 'Reference', required: true },
   totalCost: { type: Number, default: 0 },
   totalTime: { type: Number, default: 0 },
-  manufacturingProcesses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ManufacturingProcess' }],
-  bomResources: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BOMResource' }],
-  specifications: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Specification' }],
+  manufacturingProcesses: [{ type: Schema.Types.ObjectId, ref: 'ManufacturingProcess' }],
+  bomResources: [{ type: Schema.Types.ObjectId, ref: 'BOMResource' }],
+  specifications: [{ type: Schema.Types.ObjectId, ref: 'Specification' }],
 });
 
 BOMSchema.methods.calculateTotals = async function () {
-    const bomResources = await mongoose.model('BOMResource').find({ bom: this._id });
-    const manufacturingProcesses = await mongoose.model('ManufacturingProcess').find({ bom: this._id });
+    const bomResources = await model('BOMResource').find({ bom: this._id });
+    const manufacturingProcesses = await model('ManufacturingProcess').find({ bom: this._id });
   
     const bomResourcesTotalCost = bomResources.reduce((sum, br) => sum + br.totalCost, 0);
     const manufacturingProcessesTotalCost = manufacturingProcesses.reduce((sum, mp) => sum + mp.totalCost, 0);
@@ -29,4 +28,4 @@ BOMSchema.methods.calculateTotals = async function () {
   };
   
 
-module.exports = mongoose.model('BOM', BOMSchema);
+export default model('BOM', BOMSchema);

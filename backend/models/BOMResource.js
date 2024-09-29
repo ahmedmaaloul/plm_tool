@@ -1,4 +1,3 @@
-// models/BOMResource.js
 const mongoose = require('mongoose');
 
 const BOMResourceSchema = new mongoose.Schema({

@@ -2,129 +2,94 @@
 
 const express = require('express');
 const router = express.Router();
-const Product = require('../models/Product');
-const Reference = require('../models/Reference');
-const AuditLog = require('../models/AuditLog');
 const authMiddleware = require('../middleware/authMiddleware');
 const roleMiddleware = require('../middleware/roleMiddleware');
-const setProjectIdFromReferenceMiddleware = require('../middleware/setProjectIdFromReferenceMiddleware');
+const productController = require('../controllers/productController');
+const Product = require('../models/Product');
 
-// Middleware to set projectId from referenceId in the body or params
+// Middleware to set projectIds from Product
+async function setProjectIdsFromProduct(req, res, next) {
+  try {
+    const productId = req.params.id;
 
+    if (!productId) {
+      // For routes where productId is not provided, proceed without setting projectIds
+      return next();
+    }
+
+    const product = await Product.findById(productId).populate({
+      path: 'references',
+      select: 'project',
+      populate: { path: 'project', select: '_id' },
+    });
+
+    if (!product) {
+      return res.status(404).json({ error: 'Product not found' });
+    }
+
+    // Collect unique projectIds from references
+    const projectIdsSet = new Set();
+
+    for (const reference of product.references) {
+      if (reference.project) {
+        projectIdsSet.add(reference.project._id.toString());
+      }
+    }
+
+    // Convert Set to Array
+    const projectIds = Array.from(projectIdsSet);
+
+    // Attach projectIds to request parameters
+    req.params.projectIds = projectIds;
+
+    next();
+  } catch (err) {
+    console.error('Error in setProjectIdsFromProduct:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+}
 
 // Create a new Product
-router.post('/', authMiddleware, roleMiddleware('manageProducts'), async (req, res) => {
-  try {
-    const { name, description } = req.body;
-
-    if (!name || !description) {
-      return res.status(400).json({ error: 'name and description are required' });
-    }
-
-    const product = new Product({
-      name,
-      description,
-    });
-
-    await product.save();
-
-    // Create an audit log entry
-    const auditLog = new AuditLog({
-      user: req.user.userId,
-      action: `Created product: ${name}`,
-    });
-    await auditLog.save();
-
-    res.status(201).json({ message: 'Product created successfully', product });
-  } catch (err) {
-    console.error('Error creating product:', err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
+router.post(
+  '/',
+  authMiddleware,
+  roleMiddleware('manageProducts'),
+  productController.createProduct
+);
 
 // Get all Products
-router.get('/', authMiddleware, roleMiddleware('viewProducts'), async (req, res) => {
-  try {
-    const products = await Product.find().populate('references', 'code');
-
-    res.json({ products });
-  } catch (err) {
-    console.error('Error fetching products:', err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
+router.get(
+  '/',
+  authMiddleware,
+  roleMiddleware('viewProducts'),
+  productController.getProducts
+);
 
 // Get a Product by ID
-router.get('/:id', authMiddleware, roleMiddleware('viewProducts'), async (req, res) => {
-  try {
-    const product = await Product.findById(req.params.id).populate('references', 'code');
-
-    if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
-    }
-
-    res.json({ product });
-  } catch (err) {
-    console.error('Error fetching product:', err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
+router.get(
+  '/:id',
+  authMiddleware,
+  setProjectIdsFromProduct,
+  roleMiddleware('viewProducts'),
+  productController.getProductById
+);
 
 // Update a Product
-router.put('/:id', authMiddleware, roleMiddleware('manageProducts'), async (req, res) => {
-  try {
-    const { name, description } = req.body;
-
-    const product = await Product.findById(req.params.id);
-
-    if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
-    }
-
-    // Update fields if provided
-    if (name) product.name = name;
-    if (description) product.description = description;
-
-    await product.save();
-
-    // Create an audit log entry
-    const auditLog = new AuditLog({
-      user: req.user.userId,
-      action: `Updated product: ${product.name}`,
-    });
-    await auditLog.save();
-
-    res.json({ message: 'Product updated successfully', product });
-  } catch (err) {
-    console.error('Error updating product:', err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
+router.put(
+  '/:id',
+  authMiddleware,
+  setProjectIdsFromProduct,
+  roleMiddleware('manageProducts'),
+  productController.updateProduct
+);
 
 // Delete a Product
-router.delete('/:id', authMiddleware, roleMiddleware('manageProducts'), async (req, res) => {
-  try {
-    const product = await Product.findByIdAndDelete(req.params.id);
-
-    if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
-    }
-
-    // Optionally, handle deletion of associated references
-    // Be cautious with cascading deletes
-
-    // Create an audit log entry
-    const auditLog = new AuditLog({
-      user: req.user.userId,
-      action: `Deleted product: ${product.name}`,
-    });
-    await auditLog.save();
-
-    res.json({ message: 'Product deleted successfully' });
-  } catch (err) {
-    console.error('Error deleting product:', err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
+router.delete(
+  '/:id',
+  authMiddleware,
+  setProjectIdsFromProduct,
+  roleMiddleware('manageProducts'),
+  productController.deleteProduct
+);
 
 module.exports = router;

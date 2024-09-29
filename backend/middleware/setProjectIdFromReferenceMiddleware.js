@@ -29,4 +29,4 @@ async function setProjectIdFromReference(req, res, next) {
     }
   }
 
-  module.exports = setProjectIdFromReferenceMiddleware;
+  module.exports = setProjectIdFromReference;

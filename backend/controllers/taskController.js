@@ -1,7 +1,86 @@
 const Task = require('../models/Task');
 const WorkflowStep = require('../models/WorkflowStep');
-const AuditLog = require('../models/AuditLog');
+const Workflow = require('../models/Workflow');
 const Role = require('../models/Role');
+const AuditLog = require('../models/AuditLog');
+
+// Middleware to set projectId from workflowStepId in the body
+const setProjectIdFromWorkflowStep = async (req, res, next) => {
+  try {
+    const { workflowStepId } = req.body;
+    if (!workflowStepId) {
+      return res.status(400).json({ error: 'workflowStepId is required' });
+    }
+
+    const workflowStep = await WorkflowStep.findById(workflowStepId);
+    if (!workflowStep) {
+      return res.status(404).json({ error: 'WorkflowStep not found' });
+    }
+
+    const workflow = await Workflow.findById(workflowStep.workflow);
+    if (!workflow) {
+      return res.status(404).json({ error: 'Workflow not found' });
+    }
+
+    const projectId = workflow.project.toString();
+    req.params.projectId = projectId;
+    next();
+  } catch (err) {
+    console.error('Error in setProjectIdFromWorkflowStep:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Middleware to set projectId from taskId in the params
+const setProjectIdFromTask = async (req, res, next) => {
+  try {
+    const { id } = req.params; // taskId
+    const task = await Task.findById(id).populate('workflowStep');
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+
+    const workflowStep = task.workflowStep;
+    if (!workflowStep) {
+      return res.status(404).json({ error: 'WorkflowStep not found' });
+    }
+
+    const workflow = await Workflow.findById(workflowStep.workflow);
+    if (!workflow) {
+      return res.status(404).json({ error: 'Workflow not found' });
+    }
+
+    const projectId = workflow.project.toString();
+    req.params.projectId = projectId;
+    next();
+  } catch (err) {
+    console.error('Error in setProjectIdFromTask:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+// Middleware to set projectId from workflowStepId in the params
+const setProjectIdFromWorkflowStepParam = async (req, res, next) => {
+  try {
+    const { workflowStepId } = req.params;
+    const workflowStep = await WorkflowStep.findById(workflowStepId);
+    if (!workflowStep) {
+      return res.status(404).json({ error: 'WorkflowStep not found' });
+    }
+
+    const workflow = await Workflow.findById(workflowStep.workflow);
+    if (!workflow) {
+      return res.status(404).json({ error: 'Workflow not found' });
+    }
+
+    const projectId = workflow.project.toString();
+    req.params.projectId = projectId;
+    next();
+  } catch (err) {
+    console.error('Error in setProjectIdFromWorkflowStepParam:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
 
 // Create a new Task
 const createTask = async (req, res) => {
@@ -13,6 +92,7 @@ const createTask = async (req, res) => {
     }
 
     const workflowStep = await WorkflowStep.findById(workflowStepId);
+
     const task = new Task({
       description,
       workflowStep: workflowStepId,
@@ -66,6 +146,7 @@ const updateTask = async (req, res) => {
     const { description, status, dueDate } = req.body;
 
     const task = await Task.findById(id);
+
     if (!task) {
       return res.status(404).json({ error: 'Task not found' });
     }
@@ -95,6 +176,7 @@ const deleteTask = async (req, res) => {
     const { id } = req.params;
 
     const task = await Task.findById(id).populate('workflowStep');
+
     if (!task) {
       return res.status(404).json({ error: 'Task not found' });
     }
@@ -146,6 +228,9 @@ const getUserTasks = async (req, res) => {
 };
 
 module.exports = {
+  setProjectIdFromWorkflowStep,
+  setProjectIdFromTask,
+  setProjectIdFromWorkflowStepParam,
   createTask,
   getTasksByWorkflowStep,
   updateTask,

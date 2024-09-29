@@ -1,9 +1,6 @@
-// controllers/workflowStepController.js
-
 const Workflow = require('../models/Workflow');
 const WorkflowStep = require('../models/WorkflowStep');
-const Task = require('../models/Task'); // Import the Task model
-const Project = require('../models/Project');
+const Task = require('../models/Task');
 const AuditLog = require('../models/AuditLog');
 
 // Add a Workflow Step
@@ -20,11 +17,6 @@ const addWorkflowStep = async (req, res) => {
       return res.status(404).json({ error: 'Workflow not found' });
     }
 
-    const project = await Project.findById(workflow.project);
-    if (!project) {
-      return res.status(404).json({ error: 'Associated project not found' });
-    }
-
     const workflowStep = new WorkflowStep({
       name,
       order,
@@ -38,7 +30,7 @@ const addWorkflowStep = async (req, res) => {
 
     const auditLog = new AuditLog({
       user: req.user.userId,
-      action: `Added workflow step '${name}' to workflow in project '${project.title}'`,
+      action: `Added workflow step '${name}' to workflow '${workflow.name}'`,
     });
     await auditLog.save();
 
@@ -63,11 +55,6 @@ const getWorkflowStepsByWorkflowId = async (req, res) => {
       return res.status(404).json({ error: 'Workflow not found' });
     }
 
-    const project = await Project.findById(workflow.project);
-    if (!project) {
-      return res.status(404).json({ error: 'Associated project not found' });
-    }
-
     res.json({ workflowSteps: workflow.workflowSteps });
   } catch (err) {
     console.error('Error fetching workflow steps:', err);
@@ -86,16 +73,7 @@ const updateWorkflowStep = async (req, res) => {
       return res.status(404).json({ error: 'Workflow step not found' });
     }
 
-    const workflow = await Workflow.findById(workflowStep.workflow);
-    if (!workflow) {
-      return res.status(404).json({ error: 'Associated workflow not found' });
-    }
-
-    const project = await Project.findById(workflow.project);
-    if (!project) {
-      return res.status(404).json({ error: 'Associated project not found' });
-    }
-
+    // Update fields if provided
     if (name) workflowStep.name = name;
     if (typeof order === 'number') workflowStep.order = order;
 
@@ -103,7 +81,7 @@ const updateWorkflowStep = async (req, res) => {
 
     const auditLog = new AuditLog({
       user: req.user.userId,
-      action: `Updated workflow step '${workflowStep.name}' in project '${project.title}'`,
+      action: `Updated workflow step '${workflowStep.name}'`,
     });
     await auditLog.save();
 
@@ -124,29 +102,22 @@ const deleteWorkflowStep = async (req, res) => {
       return res.status(404).json({ error: 'Workflow step not found' });
     }
 
-    const workflow = await Workflow.findById(workflowStep.workflow);
-    if (!workflow) {
-      return res.status(404).json({ error: 'Associated workflow not found' });
-    }
-
-    const project = await Project.findById(workflow.project);
-    if (!project) {
-      return res.status(404).json({ error: 'Associated project not found' });
-    }
-
     // Delete associated tasks
     await Task.deleteMany({ workflowStep: workflowStep._id });
 
     // Remove the workflow step from the workflow's steps array
-    workflow.workflowSteps.pull(workflowStep._id);
-    await workflow.save();
+    const workflow = await Workflow.findById(workflowStep.workflow);
+    if (workflow) {
+      workflow.workflowSteps.pull(workflowStep._id);
+      await workflow.save();
+    }
 
     // Remove the workflow step
     await workflowStep.remove();
 
     const auditLog = new AuditLog({
       user: req.user.userId,
-      action: `Deleted workflow step '${workflowStep.name}' from project '${project.title}'`,
+      action: `Deleted workflow step '${workflowStep.name}'`,
     });
     await auditLog.save();
 

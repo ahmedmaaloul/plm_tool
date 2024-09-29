@@ -17,6 +17,7 @@ const assignRole = async (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
+    // Only the project creator or users with full access can assign roles
     if (project.creator.toString() !== req.user.userId && !req.user.fullAccess) {
       return res.status(403).json({ error: 'Access denied' });
     }
@@ -38,6 +39,10 @@ const assignRole = async (req, res) => {
     });
 
     await role.save();
+
+    // Add the role to the project's roles array
+    project.roles.push(role._id);
+    await project.save();
 
     const auditLog = new AuditLog({
       user: req.user.userId,
@@ -66,6 +71,7 @@ const removeRole = async (req, res) => {
       return res.status(404).json({ error: 'Project not found' });
     }
 
+    // Only the project creator or users with full access can remove roles
     if (project.creator.toString() !== req.user.userId && !req.user.fullAccess) {
       return res.status(403).json({ error: 'Access denied' });
     }
@@ -75,9 +81,15 @@ const removeRole = async (req, res) => {
       return res.status(404).json({ error: 'Role not found for the user in this project' });
     }
 
+    // Remove the role from the project's roles array
+    project.roles.pull(role._id);
+    await project.save();
+
+    const user = await User.findById(userId);
+
     const auditLog = new AuditLog({
       user: req.user.userId,
-      action: `Removed role '${roleName}' from user '${role.user}' in project '${project.title}'`,
+      action: `Removed role '${roleName}' from user '${user.username}' in project '${project.title}'`,
     });
     await auditLog.save();
 
@@ -93,11 +105,21 @@ const getProjectRoles = async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    const roles = await Role.find({ project: projectId })
-      .populate('user', 'username')
-      .select('name user');
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
 
-    res.json({ roles });
+    // Apply access control using roleMiddleware
+    req.params.projectId = projectId;
+    const middleware = roleMiddleware('viewProject');
+    await middleware(req, res, async () => {
+      const roles = await Role.find({ project: projectId })
+        .populate('user', 'username')
+        .select('name user');
+
+      res.json({ roles });
+    });
   } catch (err) {
     console.error('Error fetching roles:', err);
     res.status(500).json({ error: 'Server error' });
@@ -109,10 +131,19 @@ const getUserRolesInProject = async (req, res) => {
   try {
     const { projectId, userId } = req.params;
 
-    const roles = await Role.find({ project: projectId, user: userId })
-      .select('name');
+    const project = await Project.findById(projectId);
+    if (!project) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
 
-    res.json({ roles });
+    // Apply access control using roleMiddleware
+    req.params.projectId = projectId;
+    const middleware = roleMiddleware('viewProject');
+    await middleware(req, res, async () => {
+      const roles = await Role.find({ project: projectId, user: userId }).select('name');
+
+      res.json({ roles });
+    });
   } catch (err) {
     console.error('Error fetching user roles:', err);
     res.status(500).json({ error: 'Server error' });
