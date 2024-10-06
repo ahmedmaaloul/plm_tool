@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const ProjectSchema = new mongoose.Schema({
   title: { type: String, required: true },
-  reference: { type: mongoose.Schema.Types.ObjectId, ref: 'Reference', required: true },
+  reference: { type: mongoose.Schema.Types.ObjectId, ref: 'Reference' },
   creator: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   invoices: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Invoice' }],
   workflow: { type: mongoose.Schema.Types.ObjectId, ref: 'Workflow' },

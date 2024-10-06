@@ -74,4 +74,4 @@ const setProjectIdsFromSupplier = async (req, res, next) => {
   }
 };
 
-module.exports = setProjectIdsFromSupp
+module.exports = setProjectIdsFromSupplier

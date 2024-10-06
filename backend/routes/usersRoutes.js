@@ -18,6 +18,8 @@ router.put('/profile', authMiddleware, userController.updateUserProfile);
 // Delete user account
 router.delete('/delete', authMiddleware, userController.deleteUserAccount);
 
+router.get('/me', authMiddleware, userController.getMe);
+
 // Get all users (Admin only)
 router.get('/', authMiddleware, userController.getAllUsers);
 

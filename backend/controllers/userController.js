@@ -135,6 +135,16 @@ const getAllUsers = async (req, res) => {
   }
 };
 
+const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('-password');
+    res.json({ user });
+  } catch (err) {
+    console.error('Error fetching user:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -142,4 +152,5 @@ module.exports = {
   updateUserProfile,
   deleteUserAccount,
   getAllUsers,
+  getMe
 };

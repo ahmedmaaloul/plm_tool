@@ -1,13 +1,13 @@
-import { Schema, model } from 'mongoose';
+const mongoose = require('mongoose');
 
-const BOMSchema = new Schema({
+const BOMSchema = new mongoose.Schema({
   name: { type: String, required: true },
-  reference: { type: Schema.Types.ObjectId, ref: 'Reference', required: true },
+  reference: { type: mongoose.Schema.Types.ObjectId, ref: 'Reference', required: true },
   totalCost: { type: Number, default: 0 },
   totalTime: { type: Number, default: 0 },
-  manufacturingProcesses: [{ type: Schema.Types.ObjectId, ref: 'ManufacturingProcess' }],
-  bomResources: [{ type: Schema.Types.ObjectId, ref: 'BOMResource' }],
-  specifications: [{ type: Schema.Types.ObjectId, ref: 'Specification' }],
+  manufacturingProcesses: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ManufacturingProcess' }],
+  bomResources: [{ type: mongoose.Schema.Types.ObjectId, ref: 'BOMResource' }],
+  specifications: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Specification' }],
 });
 
 BOMSchema.methods.calculateTotals = async function () {
@@ -28,4 +28,4 @@ BOMSchema.methods.calculateTotals = async function () {
   };
   
 
-export default model('BOM', BOMSchema);
+  module.exports = mongoose.model('BOM', BOMSchema);

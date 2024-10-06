@@ -8,15 +8,14 @@ const AuditLog = require('../models/AuditLog');
 // Create a new project
 const createProject = async (req, res) => {
   try {
-    const { title, referenceId } = req.body;
+    const { title } = req.body;
 
-    if (!title || !referenceId) {
-      return res.status(400).json({ error: 'Title and referenceId are required' });
+    if (!title) {
+      return res.status(400).json({ error: 'Title is required' });
     }
 
     const project = new Project({
       title,
-      reference: referenceId,
       creator: req.user.userId,
     });
 
