@@ -199,14 +199,14 @@ const deleteReference = async (req, res) => {
           // Delete process resources associated with the manufacturing process
           await ProcessResource.deleteMany({ manufacturingProcess: process._id });
           // Delete the manufacturing process
-          await process.remove();
+          await process.deleteOne();
         }
 
         // Delete BOM resources associated with the BOM
         await BOMResource.deleteMany({ bom: bom._id });
 
         // Delete the BOM
-        await bom.remove();
+        await bom.deleteOne();
       }
     }
 
@@ -218,7 +218,7 @@ const deleteReference = async (req, res) => {
     }
 
     // Delete the reference
-    await reference.remove();
+    await reference.deleteOne();
 
     // Create an audit log entry
     const auditLog = new AuditLog({

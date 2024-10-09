@@ -134,7 +134,7 @@ router.post(
   '/',
   authMiddleware,
   setProjectIdsFromSpecification, // Sets req.params.projectIds
-  roleMiddleware('manageSpecifications'), // Requires manage role
+  roleMiddleware('BOMAndSuppliers'), // Requires manage role
   specificationController.createSpecification
 );
 
@@ -157,7 +157,7 @@ router.put(
   '/:id',
   authMiddleware,
   setProjectIdsFromSpecification, // Sets req.params.projectIds based on existing Specification
-  roleMiddleware('manageSpecifications'), // Requires manage role
+  roleMiddleware('BOMAndSuppliers'), // Requires manage role
   specificationController.updateSpecification
 );
 

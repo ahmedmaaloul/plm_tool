@@ -207,7 +207,7 @@ const deleteInvoice = async (req, res) => {
     await customer.save();
 
     // Remove the Invoice
-    await invoice.remove();
+    await invoice.deleteOne();
 
     // Create AuditLog
     const auditLog = new AuditLog({

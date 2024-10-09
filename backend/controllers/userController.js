@@ -28,6 +28,7 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log(username)
     const user = await User.findOne({ username });
     if (!user) return res.status(400).json({ error: 'Invalid credentials' });
 
@@ -123,10 +124,6 @@ const deleteUserAccount = async (req, res) => {
 // Get all users (Admin only)
 const getAllUsers = async (req, res) => {
   try {
-    if (!req.user.fullAccess) {
-      return res.status(403).json({ error: 'Access denied' });
-    }
-
     const users = await User.find().select('-passwordHash');
     res.json({ users });
   } catch (err) {

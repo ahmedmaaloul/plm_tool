@@ -146,7 +146,7 @@ const deleteDocument = async (req, res) => {
       reference.documents.pull(document._id);
       await reference.save();
 
-      await document.remove();
+      await document.deleteOne();
 
       // Create an audit log entry
       const auditLog = new AuditLog({

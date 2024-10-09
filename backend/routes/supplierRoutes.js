@@ -9,7 +9,7 @@ const setProjectIdsFromSupplier = require('../middleware/setProjectIdsFromSuppli
 router.post(
   '/',
   authMiddleware,
-  roleMiddleware('manageSuppliers'), // Requires manageSuppliers role or fullAccess
+  roleMiddleware('BOMAndSuppliers'),
   supplierController.createSupplier
 );
 
@@ -17,7 +17,7 @@ router.post(
 router.get(
   '/',
   authMiddleware,
-  roleMiddleware('viewSuppliers'), // Requires viewSuppliers role or fullAccess
+  roleMiddleware('BOMAndSuppliers'),
   supplierController.getSuppliers
 );
 
@@ -25,8 +25,8 @@ router.get(
 router.get(
   '/:id',
   authMiddleware,
+  roleMiddleware('BOMAndSuppliers'),
   setProjectIdsFromSupplier, // Sets req.params.projectIds based on associated projects
-  roleMiddleware('viewSuppliers'), // Requires viewSuppliers role for at least one associated project
   supplierController.getSupplierById
 );
 
@@ -34,7 +34,7 @@ router.get(
 router.put(
   '/:id',
   authMiddleware,
-  roleMiddleware('manageSuppliers'), // Requires manageSuppliers role or fullAccess
+  roleMiddleware('BOMAndSuppliers'),
   supplierController.updateSupplier
 );
 
@@ -42,7 +42,7 @@ router.put(
 router.delete(
   '/:id',
   authMiddleware,
-  roleMiddleware('manageSuppliers'), // Requires manageSuppliers role or fullAccess
+  roleMiddleware('BOMAndSuppliers'),
   supplierController.deleteSupplier
 );
 

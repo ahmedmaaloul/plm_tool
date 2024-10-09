@@ -53,7 +53,6 @@ async function setProjectIdsFromProduct(req, res, next) {
 router.post(
   '/',
   authMiddleware,
-  roleMiddleware('manageProducts'),
   productController.createProduct
 );
 
@@ -61,7 +60,6 @@ router.post(
 router.get(
   '/',
   authMiddleware,
-  roleMiddleware('viewProducts'),
   productController.getProducts
 );
 
@@ -70,7 +68,6 @@ router.get(
   '/:id',
   authMiddleware,
   setProjectIdsFromProduct,
-  roleMiddleware('viewProducts'),
   productController.getProductById
 );
 
@@ -79,7 +76,6 @@ router.put(
   '/:id',
   authMiddleware,
   setProjectIdsFromProduct,
-  roleMiddleware('manageProducts'),
   productController.updateProduct
 );
 
@@ -88,7 +84,6 @@ router.delete(
   '/:id',
   authMiddleware,
   setProjectIdsFromProduct,
-  roleMiddleware('manageProducts'),
   productController.deleteProduct
 );
 

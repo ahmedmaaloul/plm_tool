@@ -146,12 +146,13 @@ const deleteProject = async (req, res) => {
         await Workflow.findByIdAndDelete(workflow._id);
       }
     }
+    projectTitle = project.title;
 
-    await project.remove();
+    await project.deleteOne()
 
     const auditLog = new AuditLog({
       user: req.user.userId,
-      action: `Deleted project: ${project.title}`,
+      action: `Deleted project: ${projectTitle}`,
     });
     await auditLog.save();
 

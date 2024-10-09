@@ -1,115 +1,91 @@
 // src/context/AuthContext.js
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { jwtDecode } from "jwt-decode";
 
-// Create Context
 export const AuthContext = createContext();
 
-// Base URL for your backend API
-const API_BASE_URL = 'http://localhost:5000'; // Adjust the port if necessary
+const API_BASE_URL = 'http://localhost:5000'
 
-// Create Provider
 export const AuthProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null); // User object including fullAccess
+  const [userRoles, setUserRoles] = useState([]); // User's roles with accessRights
+  const [loading, setLoading] = useState(true); // Loading state for initial auth check
 
-  // Check authentication status on component mount
-  // Check authentication status on component mount
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        try {
-          // Verify token with backend and fetch user data
-          const response = await axios.get(`${API_BASE_URL}/api/users/me`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
-
-          setIsAuthenticated(true);
-          setUser(response.data.user);
-        } catch (error) {
-          console.error('Auth verification failed:', error);
-          setIsAuthenticated(false);
-          setUser(null);
-          setLoading(false);
-          localStorage.removeItem('token');
-        }
+    // Check if the user is already logged in when the app loads
+    const token = localStorage.getItem('token');
+    if (token) {
+      const userInfo = decodeToken(token);
+      if (userInfo) {
+        setUser(userInfo);
+        fetchUserRoles(userInfo._id);
       } else {
-        setIsAuthenticated(false);
-        setUser(null);
+        // Token is invalid or expired
+        localStorage.removeItem('token');
       }
-      setLoading(false);
-    };
-
-    checkAuth();
+    }
+    setLoading(false);
   }, []);
 
-
-  const login = async (username, password) => {
+  const login = async (credentials) => {
     try {
-      // Send login request to backend
-      const response = await axios.post(`${API_BASE_URL}/api/users/login`, {
-        username,
-        password,
-      });
-
-      // Save token and user data
-      const { token, user } = response.data;
-
+      // Perform login API call and get token
+      console.log(credentials)
+      const response = await axios.post(`${API_BASE_URL}/api/users/login`, credentials);
+      const token = response.data.token;
       localStorage.setItem('token', token);
-      setIsAuthenticated(true);
-      setUser(user);
 
-      return { success: true };
-    } catch (error) {
-      console.error('Login error:', error);
-      return { success: false, message: error.response?.data?.error || 'Login failed' };
+      // Decode token to get user info
+      const userInfo = decodeToken(token);
+      setUser(userInfo);
+
+      // Fetch user roles
+      console.log(`userInfo : ${userInfo}`)
+      console.log(`userInfo id : ${userInfo._id}`)
+      await fetchUserRoles(userInfo._id);
+    } catch (err) {
+      console.error('Login error:', err);
+      throw err;
+    }
+  };
+
+  const decodeToken = (token) => {
+    try {
+      const decoded = jwtDecode(token);
+      return decoded;
+    } catch (err) {
+      console.error('Token decoding error:', err);
+      return null;
+    }
+  };
+
+  const fetchUserRoles = async (userId) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/roles/user/${userId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      setUserRoles(response.data.roles);
+    } catch (err) {
+      console.error('Error fetching user roles:', err);
+      setUserRoles([]);
     }
   };
 
   const logout = () => {
-    setIsAuthenticated(false);
-    setUser(null);
     localStorage.removeItem('token');
+    setUser(null);
+    setUserRoles([]);
   };
 
-  const register = async (name, username, password) => {
-    try {
-      // Send registration request to backend
-      const response = await axios.post(`${API_BASE_URL}/api/users/register`, {
-        name,
-        username,
-        password,
-      });
-
-      // Save token and user data
-      const { token, user } = response.data;
-
-      localStorage.setItem('token', token);
-      setIsAuthenticated(true);
-      setUser(user);
-
-      return { success: true };
-    } catch (error) {
-      console.error('Registration error:', error);
-      return { success: false, message: error.response?.data?.error || 'Registration failed' };
-    }
-  };
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <AuthContext.Provider
-      value={{
-        isAuthenticated,
-        user,
-        loading,
-        login,
-        logout,
-        register,
-      }}
-    >
+    <AuthContext.Provider value={{ user, userRoles, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

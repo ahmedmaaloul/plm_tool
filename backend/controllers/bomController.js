@@ -157,14 +157,14 @@ const deleteBOM = async (req, res) => {
       // Delete ProcessResources associated with the ManufacturingProcess
       await ProcessResource.deleteMany({ manufacturingProcess: process._id });
       // Delete the ManufacturingProcess
-      await process.remove();
+      await process.deleteOne()();
     }
 
     // Delete BOMResources associated with the BOM
     await BOMResource.deleteMany({ bom: bom._id });
 
     // Delete the BOM
-    await bom.remove();
+    await bom.deleteOne()();
 
     const auditLog = new AuditLog({
       user: req.user.userId,

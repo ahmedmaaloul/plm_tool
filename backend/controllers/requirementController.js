@@ -195,7 +195,7 @@ const deleteRequirement = async (req, res) => {
     }
 
     // Remove the Requirement
-    await requirement.remove();
+    await requirement.deleteOne();
 
     // Create AuditLog
     const auditLog = new AuditLog({

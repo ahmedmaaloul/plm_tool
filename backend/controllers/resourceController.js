@@ -181,7 +181,7 @@ const deleteResource = async (req, res) => {
       await supplier.save();
     }
 
-    await resource.remove();
+    await resource.deleteOne();
 
     const auditLog = new AuditLog({
       user: req.user.userId,

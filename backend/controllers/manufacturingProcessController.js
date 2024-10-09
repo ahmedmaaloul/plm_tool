@@ -166,7 +166,7 @@ const deleteManufacturingProcess = async (req, res) => {
     await ProcessResource.deleteMany({ manufacturingProcess: manufacturingProcess._id });
 
     // Delete manufacturingProcess
-    await manufacturingProcess.remove();
+    await manufacturingProcess.deleteOne();
 
     // Recalculate BOM totals
     await bom.calculateTotals();

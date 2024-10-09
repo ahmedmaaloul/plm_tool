@@ -90,7 +90,7 @@ const deleteWorkflow = async (req, res) => {
     project.workflow = null;
     await project.save();
 
-    await workflow.remove();
+    await workflow();
 
     const auditLog = new AuditLog({
       user: req.user.userId,

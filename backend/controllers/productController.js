@@ -106,7 +106,7 @@ const deleteProduct = async (req, res) => {
       return res.status(400).json({ error: 'Cannot delete product; it has associated references' });
     }
 
-    await product.remove();
+    await product.deleteOne();
 
     const auditLog = new AuditLog({
       user: req.user.userId,

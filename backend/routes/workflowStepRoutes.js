@@ -45,7 +45,6 @@ router.post(
   '/',
   authMiddleware,
   setProjectIdFromWorkflow,
-  roleMiddleware('editWorkflow'),
   workflowStepController.addWorkflowStep
 );
 
@@ -54,7 +53,6 @@ router.get(
   '/workflow/:workflowId',
   authMiddleware,
   setProjectIdFromWorkflow,
-  roleMiddleware('viewWorkflow'),
   workflowStepController.getWorkflowStepsByWorkflowId
 );
 
@@ -63,7 +61,6 @@ router.put(
   '/:id',
   authMiddleware,
   setProjectIdFromWorkflow,
-  roleMiddleware('editWorkflow'),
   workflowStepController.updateWorkflowStep
 );
 
@@ -72,7 +69,6 @@ router.delete(
   '/:id',
   authMiddleware,
   setProjectIdFromWorkflow,
-  roleMiddleware('editWorkflow'),
   workflowStepController.deleteWorkflowStep
 );
 

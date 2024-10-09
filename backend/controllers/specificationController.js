@@ -208,7 +208,7 @@ const deleteSpecification = async (req, res) => {
     }
 
     // Remove the Specification
-    await specification.remove();
+    await specification.deleteOne();
 
     // Create AuditLog
     const auditLog = new AuditLog({

@@ -54,7 +54,7 @@ router.post(
   '/',
   authMiddleware,
   setProjectIdFromBOMOrReference,
-  roleMiddleware('createBOM'),
+  roleMiddleware('BOMAndSuppliers'), // Require 'BOMAndSuppliers' access
   bomController.createBOM
 );
 
@@ -66,7 +66,7 @@ router.get(
   '/:id',
   authMiddleware,
   setProjectIdFromBOMOrReference,
-  roleMiddleware('viewBOM'),
+  roleMiddleware('BOMAndSuppliers'), // Require 'BOMAndSuppliers' access
   bomController.getBOMById
 );
 
@@ -75,7 +75,7 @@ router.put(
   '/:id',
   authMiddleware,
   setProjectIdFromBOMOrReference,
-  roleMiddleware('editBOM'),
+  roleMiddleware('BOMAndSuppliers'), // Require 'BOMAndSuppliers' access
   bomController.updateBOM
 );
 
@@ -84,7 +84,7 @@ router.delete(
   '/:id',
   authMiddleware,
   setProjectIdFromBOMOrReference,
-  roleMiddleware('deleteBOM'),
+  roleMiddleware('BOMAndSuppliers'), // Require 'BOMAndSuppliers' access
   bomController.deleteBOM
 );
 
@@ -93,7 +93,7 @@ router.post(
   '/:id/recalculate',
   authMiddleware,
   setProjectIdFromBOMOrReference,
-  roleMiddleware('editBOM'),
+  roleMiddleware('BOMAndSuppliers'), // Require 'BOMAndSuppliers' access
   bomController.recalculateBOMTotals
 );
 

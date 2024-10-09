@@ -140,7 +140,7 @@ const deleteSimulation = async (req, res) => {
       reference.simulations.pull(simulation._id);
       await reference.save();
 
-      await simulation.remove();
+      await simulation.deleteOne();
 
       // Create an audit log entry
       const auditLog = new AuditLog({

@@ -9,7 +9,7 @@ router.post(
   '/',
   authMiddleware,
   processResourceController.setProjectIdFromManufacturingProcess,
-  roleMiddleware('editBOM'),
+  roleMiddleware('BOMAndSuppliers'), // Require 'BOMAndSuppliers' access
   processResourceController.createProcessResource
 );
 
@@ -18,17 +18,17 @@ router.get(
   '/manufacturing-process/:manufacturingProcessId',
   authMiddleware,
   processResourceController.setProjectIdFromManufacturingProcess,
-  roleMiddleware('viewBOM'),
+  roleMiddleware('BOMAndSuppliers'), // Require 'BOMAndSuppliers' access
   processResourceController.getProcessResourcesByManufacturingProcess
 );
 
 // Get a ProcessResource by ID
-router.get('/:id', authMiddleware, processResourceController.getProcessResourceById);
+router.get('/:id', authMiddleware,  roleMiddleware('BOMAndSuppliers'), processResourceController.getProcessResourceById);
 
 // Update a ProcessResource
-router.put('/:id', authMiddleware, processResourceController.updateProcessResource);
+router.put('/:id', authMiddleware,roleMiddleware('BOMAndSuppliers'), processResourceController.updateProcessResource);
 
 // Delete a ProcessResource
-router.delete('/:id', authMiddleware, processResourceController.deleteProcessResource);
+router.delete('/:id', authMiddleware,roleMiddleware('BOMAndSuppliers'), processResourceController.deleteProcessResource);
 
 module.exports = router;

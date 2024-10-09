@@ -6,11 +6,16 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import ProtectedRoute from './components/ProtectedRoute';
 import ProjectsList from './pages/ProjectsList';
 import ProjectDetails from './pages/ProjectDetails';
 import CreateProject from './pages/CreateProject';
 import EditProject from './pages/EditProject';
+//import ProductsPage from './pages/ProductsPage';
+//import CustomersPage from './pages/CustomersPage';
+//import BOMsPage from './pages/BOMsPage';
+//import WorkflowsPage from './pages/WorkflowsPage';
+import UnauthorizedPage from './pages/UnauthorizedPage';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App() {
   return (
@@ -18,7 +23,14 @@ function App() {
       <GlobalStyles />
       <NavbarWrapper />
       <Routes>
-      <Route
+        {/* Public Routes */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        {/* Unauthorized Access Page */}
+        <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
+        {/* Protected Routes */}
+        <Route
           path="/"
           element={
             <ProtectedRoute>
@@ -26,6 +38,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/projects"
           element={
@@ -34,14 +47,16 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/projects/create"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute accessRight="fullAccess">
               <CreateProject />
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/projects/:projectId"
           element={
@@ -50,6 +65,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+
         <Route
           path="/projects/edit/:projectId"
           element={
@@ -58,10 +74,49 @@ function App() {
             </ProtectedRoute>
           }
         />
-        {/* Public Routes */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        {/* Future routes can be added here */}
+
+        {/* Products Route - Requires 'Product' access right */}
+        {/* <Route
+          path="/products"
+          element={
+            <ProtectedRoute accessRight="Product">
+              <ProductsPage />
+            </ProtectedRoute>
+          }
+        /> */}
+
+        {/* Customers Route - Requires 'CustomersAndRequirements' access right */}
+        {/* <Route
+          path="/customers"
+          element={
+            <ProtectedRoute accessRight="CustomersAndRequirements">
+              <CustomersPage />
+            </ProtectedRoute>
+          }
+        /> */}
+
+        {/* BOMs Route - Requires 'BOMAndSuppliers' access right */}
+        {/* <Route
+          path="/boms"
+          element={
+            <ProtectedRoute accessRight="BOMAndSuppliers">
+              <BOMsPage />
+            </ProtectedRoute>
+          }
+        /> */}
+
+        {/* Workflows Route - Requires 'Workflow' access right */}
+        {/* <Route
+          path="/workflows"
+          element={
+            <ProtectedRoute accessRight="Workflow">
+              <WorkflowsPage />
+            </ProtectedRoute>
+          }
+        /> */}
+
+        {/* Catch-all Route for 404 Not Found */}
+        <Route path="*" element={<UnauthorizedPage />} />
       </Routes>
     </Router>
   );

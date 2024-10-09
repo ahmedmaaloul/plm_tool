@@ -199,7 +199,7 @@ const deleteProcessResource = async (req, res) => {
       resource.processResources.pull(processResource._id);
       await resource.save();
 
-      await processResource.remove();
+      await processResource.deleteOne();
 
       await manufacturingProcess.calculateTotals();
       await bom.calculateTotals();

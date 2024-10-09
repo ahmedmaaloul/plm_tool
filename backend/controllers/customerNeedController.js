@@ -189,7 +189,7 @@ const deleteCustomerNeed = async (req, res) => {
     }
 
     // Remove the CustomerNeed
-    await customerNeed.remove();
+    await customerNeed.deleteOne();
 
     // Create AuditLog
     const auditLog = new AuditLog({

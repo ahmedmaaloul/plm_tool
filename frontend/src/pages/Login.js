@@ -104,7 +104,7 @@ const Login = () => {
 
     try {
       // Call login function from AuthContext
-      const result = await login(credentials.username, credentials.password);
+      const result = await login(credentials);
       if (result.success) {
         navigate('/'); // Redirect to home page
       } else {

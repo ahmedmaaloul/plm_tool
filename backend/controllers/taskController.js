@@ -185,7 +185,7 @@ const deleteTask = async (req, res) => {
     workflowStep.tasks.pull(task._id);
     await workflowStep.save();
 
-    await task.remove();
+    await task.deleteOne();
 
     const auditLog = new AuditLog({
       user: req.user.userId,

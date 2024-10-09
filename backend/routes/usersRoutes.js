@@ -20,7 +20,7 @@ router.delete('/delete', authMiddleware, userController.deleteUserAccount);
 
 router.get('/me', authMiddleware, userController.getMe);
 
-// Get all users (Admin only)
+// Get all users
 router.get('/', authMiddleware, userController.getAllUsers);
 
 module.exports = router;

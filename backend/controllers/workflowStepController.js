@@ -113,7 +113,7 @@ const deleteWorkflowStep = async (req, res) => {
     }
 
     // Remove the workflow step
-    await workflowStep.remove();
+    await workflowStep.deleteOne();
 
     const auditLog = new AuditLog({
       user: req.user.userId,

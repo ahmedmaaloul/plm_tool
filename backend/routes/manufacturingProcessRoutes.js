@@ -50,7 +50,7 @@ router.post(
   '/',
   authMiddleware,
   setProjectIdFromBOM,
-  roleMiddleware('editBOM'),
+  roleMiddleware('BOMAndSuppliers'), // Require 'BOMAndSuppliers' access
   manufacturingProcessController.createManufacturingProcess
 );
 
@@ -59,7 +59,7 @@ router.get(
   '/bom/:bomId',
   authMiddleware,
   setProjectIdFromBOM,
-  roleMiddleware('viewBOM'),
+  roleMiddleware('BOMAndSuppliers'), // Require 'BOMAndSuppliers' access
   manufacturingProcessController.getManufacturingProcessesByBOM
 );
 
@@ -68,7 +68,7 @@ router.get(
   '/:id',
   authMiddleware,
   setProjectIdFromBOM,
-  roleMiddleware('viewBOM'),
+  roleMiddleware('BOMAndSuppliers'), // Require 'BOMAndSuppliers' access
   manufacturingProcessController.getManufacturingProcessById
 );
 
@@ -77,7 +77,7 @@ router.put(
   '/:id',
   authMiddleware,
   setProjectIdFromBOM,
-  roleMiddleware('editBOM'),
+  roleMiddleware('BOMAndSuppliers'), // Require 'BOMAndSuppliers' access
   manufacturingProcessController.updateManufacturingProcess
 );
 
@@ -86,7 +86,7 @@ router.delete(
   '/:id',
   authMiddleware,
   setProjectIdFromBOM,
-  roleMiddleware('editBOM'),
+  roleMiddleware('BOMAndSuppliers'), // Require 'BOMAndSuppliers' access
   manufacturingProcessController.deleteManufacturingProcess
 );
 

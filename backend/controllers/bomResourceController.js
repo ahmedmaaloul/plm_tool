@@ -153,7 +153,7 @@ const deleteBOMResource = async (req, res) => {
     await resource.save();
 
     // Delete bomResource
-    await bomResource.remove();
+    await bomResource.deleteOne();
 
     // Recalculate BOM totals
     await bom.calculateTotals();

@@ -1,19 +1,24 @@
 // src/components/ProtectedRoute.js
 import React, { useContext } from 'react';
-import { Navigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import LoadingSpinner from './LoadingSpinner';
+import { Navigate } from 'react-router-dom';
 
-const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useContext(AuthContext);
+const ProtectedRoute = ({ accessRight, children }) => {
+  const { user, userRoles } = useContext(AuthContext);
 
-  if (loading) {
-    return <LoadingSpinner />;
+  const hasAccess = (accessRight) => {
+    if (user && user.fullAccess) return true;
+    return userRoles.some((role) => role.accessRights.includes(accessRight));
+  };
+
+  if (!user) {
+    return <Navigate to="/login" />;
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  if (accessRight && !hasAccess(accessRight)) {
+    return <Navigate to="/unauthorized" />;
   }
+
   return children;
 };
 

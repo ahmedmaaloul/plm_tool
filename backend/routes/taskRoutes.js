@@ -9,7 +9,6 @@ router.post(
   '/',
   authMiddleware,
   taskController.setProjectIdFromWorkflowStep,
-  roleMiddleware('manageTasks'),
   taskController.createTask
 );
 
@@ -18,7 +17,6 @@ router.get(
   '/workflow-step/:workflowStepId',
   authMiddleware,
   taskController.setProjectIdFromWorkflowStepParam,
-  roleMiddleware('viewTasks'),
   taskController.getTasksByWorkflowStep
 );
 
@@ -27,7 +25,6 @@ router.put(
   '/:id',
   authMiddleware,
   taskController.setProjectIdFromTask,
-  roleMiddleware('manageTasks'),
   taskController.updateTask
 );
 
@@ -36,7 +33,6 @@ router.delete(
   '/:id',
   authMiddleware,
   taskController.setProjectIdFromTask,
-  roleMiddleware('manageTasks'),
   taskController.deleteTask
 );
 

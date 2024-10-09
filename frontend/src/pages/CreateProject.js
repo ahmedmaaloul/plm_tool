@@ -96,7 +96,7 @@ const CreateProject = () => {
     e.preventDefault();
     try {
       const newProject = await createProject(projectData);
-      navigate(`/projects/edit/${newProject._id}`);
+      navigate(`/`);
     } catch (err) {
       setError('Error creating project.');
     }

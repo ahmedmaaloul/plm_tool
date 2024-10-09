@@ -72,7 +72,7 @@ async function setProjectIdsFromResource(req, res, next) {
 router.post(
   '/',
   authMiddleware,
-  roleMiddleware('createResource'),
+  roleMiddleware('BOMAndSuppliers'),
   resourceController.createResource
 );
 
@@ -80,7 +80,7 @@ router.post(
 router.get(
   '/',
   authMiddleware,
-  roleMiddleware('viewResources'),
+  roleMiddleware('BOMAndSuppliers'),
   resourceController.getResources
 );
 
@@ -89,7 +89,7 @@ router.get(
   '/:id',
   authMiddleware,
   setProjectIdsFromResource,
-  roleMiddleware('viewResources'),
+  roleMiddleware('BOMAndSuppliers'),
   resourceController.getResourceById
 );
 
@@ -98,7 +98,7 @@ router.put(
   '/:id',
   authMiddleware,
   setProjectIdsFromResource,
-  roleMiddleware('editResource'),
+  roleMiddleware('BOMAndSuppliers'),
   resourceController.updateResource
 );
 
@@ -107,7 +107,7 @@ router.delete(
   '/:id',
   authMiddleware,
   setProjectIdsFromResource,
-  roleMiddleware('deleteResource'),
+  roleMiddleware('BOMAndSuppliers'),
   resourceController.deleteResource
 );
 

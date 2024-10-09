@@ -130,7 +130,7 @@ const deleteCustomer = async (req, res) => {
       });
     }
 
-    await customer.remove();
+    await customer.deleteOne();
 
     const auditLog = new AuditLog({
       user: req.user.userId,

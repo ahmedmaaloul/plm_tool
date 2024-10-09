@@ -10,7 +10,7 @@ const workflowController = require('../controllers/workflowController');
 router.post('/', authMiddleware, workflowController.createWorkflow);
 
 // Get a Workflow by Project ID
-router.get('/project/:projectId', authMiddleware, roleMiddleware('viewWorkflow'), workflowController.getWorkflowByProjectId);
+router.get('/project/:projectId', authMiddleware, workflowController.getWorkflowByProjectId);
 
 // Delete a Workflow
 router.delete('/:id', authMiddleware, workflowController.deleteWorkflow);

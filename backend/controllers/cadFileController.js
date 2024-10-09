@@ -142,7 +142,7 @@ const deleteCADFile = async (req, res) => {
       reference.cadFiles.pull(cadFile._id);
       await reference.save();
 
-      await cadFile.remove();
+      await cadFile.deleteOne();
 
       // Create an audit log entry
       const auditLog = new AuditLog({
