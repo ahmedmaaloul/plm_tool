@@ -1,9 +1,9 @@
 // src/pages/EditProject.js
 import React, { useState, useContext, useEffect } from 'react';
-import { ProjectContext } from '../context/ProjectContext';
+import { ProjectContext } from '../../context/ProjectContext';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import { AuthContext } from '../context/AuthContext';
+import { AuthContext } from '../../context/AuthContext';
 import {
   Container,
   FormWrapper,
@@ -11,9 +11,9 @@ import {
   FormSection,
   SectionTitle,
   ErrorMessage,
-} from '../components/StyledComponents';
-import ProjectDetailsForm from '../components/ProjectDetailsForm';
-import RolesManagement from '../components/RolesManagement';
+} from '../../components/StyledComponents';
+import ProjectDetailsForm from '../../components/project/ProjectDetailsForm';
+import RolesManagement from '../../components/roles/RolesManagement';
 
 const EditProject = () => {
   const { projectDetails, fetchProjectById, updateProject } = useContext(ProjectContext);
@@ -52,6 +52,8 @@ const EditProject = () => {
 
   // Update project data when projectDetails are fetched
   useEffect(() => {
+    console.log(projectDetails)
+    console.log(projectDetails.reference)
     if (projectDetails && projectDetails.title && projectData.title === '') {
       setProjectData({
         title: projectDetails.title,

@@ -2,8 +2,10 @@ const Project = require('../models/Project');
 const Role = require('../models/Role');
 const Workflow = require('../models/Workflow');
 const WorkflowStep = require('../models/WorkflowStep');
+const Reference = require('../models/Reference');
 const Task = require('../models/Task');
 const AuditLog = require('../models/AuditLog');
+const mongoose = require('mongoose');
 
 // Create a new project
 const createProject = async (req, res) => {
@@ -87,32 +89,76 @@ const getProjectById = async (req, res) => {
 
 // Update project details
 const updateProject = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const { projectId } = req.params;
-    const { title, referenceId } = req.body;
+    const { title, reference } = req.body;
+    const referenceId = reference;
 
-    const project = await Project.findById(projectId);
+    const project = await Project.findById(projectId).session(session);
     if (!project) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({ error: 'Project not found' });
     }
 
     if (project.creator.toString() !== req.user.userId) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(403).json({ error: 'Access denied' });
     }
 
-    if (title) project.title = title;
-    if (referenceId) project.reference = referenceId;
+    let oldReferenceId = project.reference ? project.reference.toString() : null;
 
-    await project.save();
+    if (title) project.title = title;
+
+    if (referenceId && referenceId !== oldReferenceId) {
+      const newReference = await Reference.findById(referenceId).session(session);
+      if (!newReference) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(404).json({ error: 'New Reference not found' });
+      }
+
+      if (newReference.project && newReference.project.toString() !== projectId) {
+        await session.abortTransaction();
+        session.endSession();
+        return res.status(400).json({ error: 'Reference is already associated with another project' });
+      }
+
+      // Remove project reference from old reference
+      if (oldReferenceId) {
+        const oldReference = await Reference.findById(oldReferenceId).session(session);
+        if (oldReference) {
+          oldReference.project = undefined;
+          await oldReference.save({ session });
+        }
+      }
+
+      // Set project reference in new reference
+      newReference.project = projectId;
+      await newReference.save({ session });
+
+      // Update project's reference
+      project.reference = referenceId;
+    }
+
+    await project.save({ session });
 
     const auditLog = new AuditLog({
       user: req.user.userId,
       action: `Updated project: ${project.title}`,
     });
-    await auditLog.save();
+    await auditLog.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.json({ message: 'Project updated successfully', project });
   } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
     console.error('Error updating project:', err);
     res.status(500).json({ error: 'Server error' });
   }

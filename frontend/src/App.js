@@ -7,15 +7,20 @@ import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ProjectsList from './pages/ProjectsList';
-import ProjectDetails from './pages/ProjectDetails';
-import CreateProject from './pages/CreateProject';
-import EditProject from './pages/EditProject';
+import ProjectDetails from './pages/project/ProjectDetails';
+import CreateProject from './pages/project/CreateProject';
+import EditProject from './pages/project/EditProject';
 //import ProductsPage from './pages/ProductsPage';
 //import CustomersPage from './pages/CustomersPage';
 //import BOMsPage from './pages/BOMsPage';
-//import WorkflowsPage from './pages/WorkflowsPage';
+import UserTasks from './pages/UserTasks';
 import UnauthorizedPage from './pages/UnauthorizedPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import BOMDetails from './pages/bom/BOMDetails';
+import BOMList from './pages/bom/BOMList';
+import SupplierDashboard from './pages/supplier/SupplierDashboard';
+import ResourceDashboard from './pages/resource/ResourceDashboard';
+
 
 function App() {
   return (
@@ -35,6 +40,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Home />
+            </ProtectedRoute>
+          }
+        />
+         {/* Protected Routes */}
+         <Route
+          path="/my_tasks"
+          element={
+            <ProtectedRoute>
+              <UserTasks />
             </ProtectedRoute>
           }
         />
@@ -74,6 +88,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        
 
         {/* Products Route - Requires 'Product' access right */}
         {/* <Route
@@ -94,16 +109,38 @@ function App() {
             </ProtectedRoute>
           }
         /> */}
-
-        {/* BOMs Route - Requires 'BOMAndSuppliers' access right */}
-        {/* <Route
+        <Route
           path="/boms"
           element={
             <ProtectedRoute accessRight="BOMAndSuppliers">
-              <BOMsPage />
+              <BOMList />
             </ProtectedRoute>
           }
-        /> */}
+        />
+        <Route
+          path="/boms/:bomId"
+          element={
+            <ProtectedRoute accessRight="BOMAndSuppliers">
+              <BOMDetails />
+            </ProtectedRoute>
+          }
+        />
+         <Route
+          path="/suppliers"
+          element={
+            <ProtectedRoute accessRight="BOMAndSuppliers">
+              <SupplierDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/resources"
+          element={
+            <ProtectedRoute accessRight="BOMAndSuppliers">
+              <ResourceDashboard />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Workflows Route - Requires 'Workflow' access right */}
         {/* <Route

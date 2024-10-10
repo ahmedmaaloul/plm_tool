@@ -7,7 +7,7 @@ import {
   Input,
   Select,
   SubmitButton,
-} from './StyledComponents';
+} from '../StyledComponents';
 
 const ProjectDetailsForm = ({
   projectData,

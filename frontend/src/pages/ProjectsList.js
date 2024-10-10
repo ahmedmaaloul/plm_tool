@@ -132,7 +132,7 @@ const ProjectsList = () => {
           {filteredProjects.map((project) => (
             <ProjectCard key={project._id}>
               <ProjectTitle>{project.title}</ProjectTitle>
-              <ProjectReference>Reference: {project.reference}</ProjectReference>
+              <ProjectReference>Reference: {project.reference?.code}</ProjectReference>
               <DetailsButton to={`/projects/${project._id}`}>
                 View Details
               </DetailsButton>

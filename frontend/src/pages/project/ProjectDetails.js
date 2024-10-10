@@ -1,9 +1,9 @@
-// src/pages/ProjectDetails.js
 import React, { useEffect, useContext, useState } from 'react';
-import { ProjectContext } from '../context/ProjectContext';
+import { ProjectContext } from '../../context/ProjectContext';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import axios from 'axios';
+import CreateBOMForm from '../../components/bom/CreateBOMForm';
 
 const Container = styled.div`
   padding: 20px;
@@ -141,7 +141,6 @@ const ProjectDetails = () => {
   const [newTaskDescription, setNewTaskDescription] = useState('');
   const [newTaskRoleId, setNewTaskRoleId] = useState('');
   const [newTaskDueDate, setNewTaskDueDate] = useState('');
-  const [reference, setReference] = useState(null);
   const [bom, setBOM] = useState(null);
   const [invoices, setInvoices] = useState([]);
   const [showErrorModal, setShowErrorModal] = useState(false);
@@ -149,7 +148,7 @@ const ProjectDetails = () => {
 
   const navigate = useNavigate();
 
-  const API_BASE_URL = 'http://localhost:5000'; // Adjust if necessary
+  const API_BASE_URL = 'http://localhost:5000';
 
   useEffect(() => {
     const getProject = async () => {
@@ -157,7 +156,6 @@ const ProjectDetails = () => {
         await fetchProjectById(projectId);
         await fetchWorkflow();
         await fetchRoles();
-        await fetchReference();
         await fetchInvoices();
       } catch (err) {
         setErrorMessage('Error fetching project details.');
@@ -165,7 +163,33 @@ const ProjectDetails = () => {
       }
     };
     getProject();
-  }, [fetchProjectById, projectId]);
+    // eslint-disable-next-line
+  }, [projectId]);
+
+  useEffect(() => {
+    const fetchBOM = async () => {
+      console.log(projectDetails?.reference?.bom)
+      if (projectDetails?.reference?.bom) {
+        try {
+          const response = await axios.get(`${API_BASE_URL}/api/bom/${projectDetails.reference.bom}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`,
+            },
+          });
+          setBOM(response.data.bom);
+        } catch (err) {
+          console.log(err)
+          setBOM(null);
+        }
+      }
+    };
+    fetchBOM();
+    // eslint-disable-next-line
+  }, [projectDetails]);
+
+  const handleBOMCreated = (newBOM) => {
+    setBOM(newBOM);
+  };
 
   const fetchWorkflow = async () => {
     try {
@@ -178,7 +202,7 @@ const ProjectDetails = () => {
       setWorkflowSteps(response.data.workflow.workflowSteps);
     } catch (err) {
       setWorkflow(null);
-      setErrorMessage('Error fetching workflow.');
+      setErrorMessage('No workflow in this project');
       setShowErrorModal(true);
     }
   };
@@ -333,42 +357,6 @@ const ProjectDetails = () => {
     await fetchTasks(step._id);
   };
 
-  const fetchReference = async () => {
-    if (projectDetails && projectDetails.reference) {
-      try {
-        const response = await axios.get(
-          `${API_BASE_URL}/api/references/${projectDetails.reference}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-          }
-        );
-        setReference(response.data.reference);
-        if (response.data.reference.bom) {
-          await fetchBOM(response.data.reference.bom);
-        }
-      } catch (err) {
-        setErrorMessage('Error fetching reference.');
-        setShowErrorModal(true);
-      }
-    }
-  };
-
-  const fetchBOM = async (bomId) => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/boms/${bomId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      setBOM(response.data.bom);
-    } catch (err) {
-      setErrorMessage('Error fetching BOM.');
-      setShowErrorModal(true);
-    }
-  };
-
   const fetchInvoices = async () => {
     try {
       const response = await axios.get(
@@ -408,22 +396,20 @@ const ProjectDetails = () => {
       </Section>
 
       {/* Reference Section */}
-      {reference && (
+      {projectDetails.reference && (
         <Section>
           <SubTitle>Reference Details</SubTitle>
           <p>
-            <strong>Code:</strong> {reference.code}
+            <strong>Code:</strong> {projectDetails.reference.code}
           </p>
           <p>
-            <strong>Description:</strong> {reference.description}
+            <strong>Description:</strong> {projectDetails.reference.description}
           </p>
           <div>
             {bom ? (
               <Button onClick={() => navigate(`/boms/${bom._id}`)}>View BOM</Button>
             ) : (
-              <Button onClick={() => navigate(`/references/${reference._id}/create-bom`)}>
-                Create BOM
-              </Button>
+              <CreateBOMForm referenceId={projectDetails.reference._id} onBOMCreated={handleBOMCreated} />
             )}
           </div>
         </Section>
@@ -438,23 +424,17 @@ const ProjectDetails = () => {
               {invoices.map((invoice) => (
                 <li key={invoice._id}>
                   {invoice.filename}{' '}
-                  <Button onClick={() => navigate(`/invoices/${invoice._id}`)}>
-                    View Invoice
-                  </Button>
+                  <Button onClick={() => navigate(`/invoices/${invoice._id}`)}>View Invoice</Button>
                 </li>
               ))}
             </ul>
-            <Button onClick={() => navigate(`/projects/${projectId}/invoices`)}>
-              View All Invoices
-            </Button>
+            <Button onClick={() => navigate(`/projects/${projectId}/invoices`)}>View All Invoices</Button>
           </>
         ) : (
           <p>No invoices available.</p>
         )}
         {bom ? (
-          <Button onClick={() => navigate(`/projects/${projectId}/create-invoice`)}>
-            Create Invoice
-          </Button>
+          <Button onClick={() => navigate(`/projects/${projectId}/create-invoice`)}>Create Invoice</Button>
         ) : (
           <p>You need to create a BOM before generating an invoice.</p>
         )}

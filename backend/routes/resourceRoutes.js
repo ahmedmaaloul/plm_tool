@@ -97,7 +97,6 @@ router.get(
 router.put(
   '/:id',
   authMiddleware,
-  setProjectIdsFromResource,
   roleMiddleware('BOMAndSuppliers'),
   resourceController.updateResource
 );
@@ -106,7 +105,6 @@ router.put(
 router.delete(
   '/:id',
   authMiddleware,
-  setProjectIdsFromResource,
   roleMiddleware('BOMAndSuppliers'),
   resourceController.deleteResource
 );

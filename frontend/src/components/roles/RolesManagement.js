@@ -7,7 +7,7 @@ import {
   Input,
   Select,
   Button,
-} from './StyledComponents';
+} from '../StyledComponents';
 
 const accessRightsOptions = [
   'Product',

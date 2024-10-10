@@ -1,0 +1,420 @@
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
+import styled from 'styled-components';
+import axios from 'axios';
+import { Pie } from 'react-chartjs-2';
+import 'chart.js/auto';
+import AddBOMResourceForm from '../../components/bom/AddBOMResourceForm';
+import AddManufacturingProcessForm from '../../components/bom/AddManufacturingProcessForm';
+import EditManufacturingProcessForm from '../../components/bom/EditManufacturingProcessForm';
+
+const Container = styled.div`
+  padding: 20px;
+`;
+
+const Section = styled.div`
+  margin-bottom: 30px;
+`;
+
+const Title = styled.h2`
+  color: #ff5757;
+  margin-bottom: 20px;
+`;
+
+const SubTitle = styled.h3`
+  color: #ff5757;
+  margin-bottom: 15px;
+`;
+
+const Button = styled.button`
+  background-color: #ff5757;
+  color: #fff7eb;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  margin: 5px;
+  cursor: pointer;
+`;
+
+const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+
+  th, td {
+    border: 1px solid #ff5757;
+    padding: 10px;
+    text-align: left;
+  }
+
+  th {
+    background-color: #ff5757;
+    color: #fff7eb;
+  }
+`;
+
+const PieChartContainer = styled.div`
+  width: 400px;
+  margin: 0 auto;
+`;
+
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background-color: #fff7eb;
+  padding: 20px;
+  border-radius: 10px;
+  width: 600px;
+  max-height: 80%;
+  overflow-y: auto;
+  position: relative;
+`;
+
+const CloseButton = styled.button`
+  background-color: transparent;
+  color: #ff5757;
+  border: none;
+  font-size: 24px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+`;
+
+const ErrorMessage = styled.p`
+  color: red;
+`;
+
+const Input = styled.input`
+  padding: 10px;
+  margin-bottom: 20px;
+  width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+`;
+
+const BOMDetails = () => {
+  const { bomId } = useParams();
+  const navigate = useNavigate();
+  const [bom, setBOM] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showAddResourceModal, setShowAddResourceModal] = useState(false);
+  const [showAddProcessModal, setShowAddProcessModal] = useState(false);
+  const [showEditProcessModal, setShowEditProcessModal] = useState(false);
+  const [processToEdit, setProcessToEdit] = useState(null);
+  const [showEditNameModal, setShowEditNameModal] = useState(false);
+  const [newBOMName, setNewBOMName] = useState('');
+  const [error, setError] = useState('');
+
+  const API_BASE_URL = 'http://localhost:5000';
+
+  useEffect(() => {
+    const fetchBOM = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/bom/${bomId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        setBOM(response.data.bom);
+        setNewBOMName(response.data.bom.name); // Set the initial value for BOM name in the edit modal
+        setLoading(false);
+      } catch (err) {
+        setError('Error fetching BOM details.');
+        setLoading(false);
+      }
+    };
+    fetchBOM();
+  }, [bomId]);
+
+  const handleUpdateBOMName = async () => {
+    try {
+      await axios.put(
+        `${API_BASE_URL}/api/bom/${bomId}`,
+        { name: newBOMName },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
+      setBOM((prev) => ({ ...prev, name: newBOMName }));
+      setShowEditNameModal(false);
+    } catch (err) {
+      setError('Error updating BOM name.');
+    }
+  };
+
+  const handleDeleteBOMResource = async (brId) => {
+    try {
+      await axios.delete(`${API_BASE_URL}/api/bom-resources/${brId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      const deletedBR = bom.bomResources.find((br) => br._id === brId);
+      setBOM((prev) => ({
+        ...prev,
+        bomResources: prev.bomResources.filter((br) => br._id !== brId),
+        totalCost: prev.totalCost - deletedBR.totalCost,
+        totalTime: prev.totalTime - deletedBR.totalTime,
+      }));
+    } catch (err) {
+      setError('Error deleting BOM Resource.');
+    }
+  };
+
+  const handleDeleteManufacturingProcess = async (mpId) => {
+    try {
+      await axios.delete(`${API_BASE_URL}/api/manufacturing-processes/${mpId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      const deletedMP = bom.manufacturingProcesses.find((mp) => mp._id === mpId);
+      setBOM((prev) => ({
+        ...prev,
+        manufacturingProcesses: prev.manufacturingProcesses.filter((mp) => mp._id !== mpId),
+        totalCost: prev.totalCost - deletedMP.totalCost,
+        totalTime: prev.totalTime - deletedMP.totalTime,
+      }));
+    } catch (err) {
+      setError('Error deleting Manufacturing Process.');
+    }
+  };
+
+  const handleEditProcess = (process) => {
+    setProcessToEdit(process);
+    setShowEditProcessModal(true);
+  };
+
+  // Calculate specific totals for Pie Chart
+  const calculateSpecificTotals = () => {
+    if (!bom) return { bomResourcesTotal: 0, manufacturingProcessesTotal: 0 };
+    const bomResourcesTotal = bom.bomResources.reduce((sum, br) => sum + br.totalCost, 0);
+    const manufacturingProcessesTotal = bom.manufacturingProcesses.reduce((sum, mp) => sum + mp.totalCost, 0);
+    return { bomResourcesTotal, manufacturingProcessesTotal };
+  };
+
+  const { bomResourcesTotal, manufacturingProcessesTotal } = calculateSpecificTotals();
+
+  const pieData = {
+    labels: ['BOM Resources', 'Manufacturing Processes'],
+    datasets: [
+      {
+        data: [bomResourcesTotal, manufacturingProcessesTotal],
+        backgroundColor: ['#FF6384', '#36A2EB'],
+      },
+    ],
+  };
+
+  if (loading) {
+    return <p>Loading BOM details...</p>;
+  }
+
+  return (
+    <Container>
+      <Title>BOM Details</Title>
+      <Section>
+        <SubTitle>{bom.name}</SubTitle>
+        <p>
+          <strong>Total Cost:</strong> ${bom.totalCost.toFixed(2)}
+        </p>
+        <p>
+          <strong>Total Time:</strong> {bom.totalTime} hours
+        </p>
+        <div>
+          <Button onClick={() => navigate(-1)}>Back</Button>
+          <Button onClick={() => setShowAddResourceModal(true)}>Add BOM Resource</Button>
+          <Button onClick={() => setShowAddProcessModal(true)}>Add Manufacturing Process</Button>
+          <Button onClick={() => setShowEditNameModal(true)}>Edit BOM Name</Button>
+        </div>
+      </Section>
+
+      {/* Pie Chart Section */}
+      <Section>
+        <SubTitle>Cost Distribution</SubTitle>
+        <PieChartContainer>
+          <Pie data={pieData} />
+        </PieChartContainer>
+      </Section>
+
+      {/* BOM Resources Section */}
+      <Section>
+        <SubTitle>BOM Resources</SubTitle>
+        {bom.bomResources.length > 0 ? (
+          <Table>
+            <thead>
+              <tr>
+                <th>Resource Name</th>
+                <th>Quantity</th>
+                <th>Total Cost</th>
+                <th>Total Time</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bom.bomResources.map((br) => (
+                <tr key={br._id}>
+                  <td>{br.resource.name}</td>
+                  <td>{br.quantity} {br.resource.unit}</td>
+                  <td>${br.totalCost.toFixed(2)}</td>
+                  <td>{br.totalTime} hours</td>
+                  <td>
+                    <Link to={`/boms/${bom._id}/resources/${br._id}/edit`}>
+                      <Button>Edit</Button>
+                    </Link>
+                    <Button onClick={() => handleDeleteBOMResource(br._id)}>Delete</Button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </Table>
+        ) : (
+          <p>No BOM Resources added yet.</p>
+        )}
+      </Section>
+
+      {/* Manufacturing Processes Section */}
+      <Section>
+        <SubTitle>Manufacturing Processes and Process Resources</SubTitle>
+        {bom.manufacturingProcesses.length > 0 ? (
+          <Table>
+            <thead>
+              <tr>
+                <th>Process Name</th>
+                <th>Process Resource</th>
+                <th>Quantity</th>
+                <th>Total Cost</th>
+                <th>Total Time</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bom.manufacturingProcesses.map((mp) => (
+                <>
+                  <tr key={mp._id}>
+                    <td>{mp.name}</td>
+                    <td colSpan="5">{mp.details}</td>
+                  </tr>
+                  {mp.processResources.map((pr) => (
+                    <tr key={pr._id}>
+                      <td></td>
+                      <td>{pr.resource.name}</td>
+                      <td>{pr.quantity}</td>
+                      <td>${pr.totalCost.toFixed(2)}</td>
+                      <td>{pr.totalTime} hours</td>
+                      <td>
+                        <Button onClick={() => handleEditProcess(mp)}>Edit</Button>
+                        <Button onClick={() => handleDeleteManufacturingProcess(mp._id)}>Delete</Button>
+                      </td>
+                    </tr>
+                  ))}
+                </>
+              ))}
+            </tbody>
+          </Table>
+        ) : (
+          <p>No Manufacturing Processes added yet.</p>
+        )}
+      </Section>
+
+      {/* Add BOM Resource Modal */}
+      {showAddResourceModal && (
+        <ModalOverlay>
+          <ModalContent>
+            <CloseButton onClick={() => setShowAddResourceModal(false)}>&times;</CloseButton>
+            <AddBOMResourceForm bomId={bom._id} onResourceAdded={setBOM} />
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
+      {/* Add Manufacturing Process Modal */}
+      {showAddProcessModal && (
+        <ModalOverlay>
+          <ModalContent>
+            <CloseButton onClick={() => setShowAddProcessModal(false)}>&times;</CloseButton>
+            <AddManufacturingProcessForm
+              bomId={bom._id}
+              onProcessAdded={(newProcess) => {
+                setBOM((prev) => ({
+                  ...prev,
+                  manufacturingProcesses: [...prev.manufacturingProcesses, newProcess],
+                  totalCost: prev.totalCost + newProcess.totalCost,
+                  totalTime: prev.totalTime + newProcess.totalTime,
+                }));
+                setShowAddProcessModal(false);
+              }}
+            />
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
+      {/* Edit BOM Name Modal */}
+      {showEditNameModal && (
+        <ModalOverlay>
+          <ModalContent>
+            <CloseButton onClick={() => setShowEditNameModal(false)}>&times;</CloseButton>
+            <h3>Edit BOM Name</h3>
+            <Input
+              type="text"
+              value={newBOMName}
+              onChange={(e) => setNewBOMName(e.target.value)}
+            />
+            <Button onClick={handleUpdateBOMName}>Save</Button>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
+      {/* Edit Manufacturing Process Modal */}
+      {showEditProcessModal && processToEdit && (
+        <ModalOverlay>
+          <ModalContent>
+            <CloseButton onClick={() => setShowEditProcessModal(false)}>&times;</CloseButton>
+            <EditManufacturingProcessForm
+              manufacturingProcess={processToEdit}
+              onProcessUpdated={(updatedProcess) => {
+                setBOM((prev) => ({
+                  ...prev,
+                  manufacturingProcesses: prev.manufacturingProcesses.map((mp) =>
+                    mp._id === updatedProcess._id ? updatedProcess : mp
+                  ),
+                  totalCost:
+                    prev.totalCost - processToEdit.totalCost + updatedProcess.totalCost,
+                  totalTime:
+                    prev.totalTime - processToEdit.totalTime + updatedProcess.totalTime,
+                }));
+                setShowEditProcessModal(false);
+              }}
+            />
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
+      {/* Error Modal */}
+      {error && (
+        <ModalOverlay>
+          <ModalContent>
+            <CloseButton onClick={() => setError('')}>&times;</CloseButton>
+            <h3>Error</h3>
+            <p>{error}</p>
+            <Button onClick={() => setError('')}>Close</Button>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+    </Container>
+  );
+};
+
+export default BOMDetails;

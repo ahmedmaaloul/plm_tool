@@ -1,9 +1,9 @@
-const BOM = require('../models/BOM');
-const BOMResource = require('../models/BOMResource');
-const ManufacturingProcess = require('../models/ManufacturingProcess');
-const ProcessResource = require('../models/ProcessResource');
-const Reference = require('../models/Reference');
-const AuditLog = require('../models/AuditLog');
+const BOM = require("../models/BOM");
+const BOMResource = require("../models/BOMResource");
+const ManufacturingProcess = require("../models/ManufacturingProcess");
+const ProcessResource = require("../models/ProcessResource");
+const Reference = require("../models/Reference");
+const AuditLog = require("../models/AuditLog");
 
 // Create a new BOM
 const createBOM = async (req, res) => {
@@ -11,12 +11,14 @@ const createBOM = async (req, res) => {
     const { name, referenceId } = req.body;
 
     if (!name || !referenceId) {
-      return res.status(400).json({ error: 'Name and referenceId are required' });
+      return res
+        .status(400)
+        .json({ error: "Name and referenceId are required" });
     }
 
     const reference = await Reference.findById(referenceId);
     if (!reference) {
-      return res.status(404).json({ error: 'Reference not found' });
+      return res.status(404).json({ error: "Reference not found" });
     }
 
     const bom = new BOM({ name, reference: referenceId });
@@ -31,26 +33,49 @@ const createBOM = async (req, res) => {
     });
     await auditLog.save();
 
-    res.status(201).json({ message: 'BOM created successfully', bom });
+    res.status(201).json({ message: "BOM created successfully", bom });
   } catch (err) {
-    console.error('Error creating BOM:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error creating BOM:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
-// Get all BOMs (Admin only)
 const getBOMs = async (req, res) => {
   try {
-    const boms = await BOM.find()
-      .populate('reference', 'code description')
-      .populate('manufacturingProcesses')
-      .populate('bomResources')
-      .populate('specifications');
+    const { page = 1, limit = 10, search, reference, project } = req.query;
 
-    res.json({ boms });
+    const query = {};
+
+    if (search) {
+      query.name = { $regex: search, $options: "i" }; // Case-insensitive search by name
+    }
+
+    if (reference) {
+      query["reference.code"] = { $regex: reference, $options: "i" }; // Filter by reference code
+    }
+
+    if (project) {
+      const references = await Reference.find({ project });
+      query.reference = { $in: references.map((ref) => ref._id) }; // Filter by project ID
+    }
+
+    const totalBOMs = await BOM.countDocuments(query);
+    const totalPages = Math.ceil(totalBOMs / limit);
+    const boms = await BOM.find(query)
+      .populate("reference", "code description")
+      .populate("manufacturingProcesses")
+      .populate("bomResources")
+      .populate("specifications")
+      .limit(limit)
+      .skip((page - 1) * limit);
+
+    res.json({
+      boms,
+      totalPages,
+    });
   } catch (err) {
-    console.error('Error fetching BOMs:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching BOMs:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -59,28 +84,28 @@ const getBOMById = async (req, res) => {
   try {
     const { id } = req.params;
     const bom = await BOM.findById(id)
-      .populate('reference', 'code description')
+      .populate("reference", "code description")
       .populate({
-        path: 'manufacturingProcesses',
+        path: "manufacturingProcesses",
         populate: {
-          path: 'processResources',
-          populate: { path: 'resource' },
+          path: "processResources",
+          populate: { path: "resource" },
         },
       })
       .populate({
-        path: 'bomResources',
-        populate: { path: 'resource' },
+        path: "bomResources",
+        populate: { path: "resource" },
       })
-      .populate('specifications');
+      .populate("specifications");
 
     if (!bom) {
-      return res.status(404).json({ error: 'BOM not found' });
+      return res.status(404).json({ error: "BOM not found" });
     }
 
     res.json({ bom });
   } catch (err) {
-    console.error('Error fetching BOM:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching BOM:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -89,10 +114,11 @@ const updateBOM = async (req, res) => {
   try {
     const { id } = req.params;
     const { name, referenceId } = req.body;
+    console.log(name)
 
     const bom = await BOM.findById(id);
     if (!bom) {
-      return res.status(404).json({ error: 'BOM not found' });
+      return res.status(404).json({ error: "BOM not found" });
     }
 
     if (name) bom.name = name;
@@ -100,7 +126,7 @@ const updateBOM = async (req, res) => {
     if (referenceId && referenceId !== bom.reference.toString()) {
       const newReference = await Reference.findById(referenceId);
       if (!newReference) {
-        return res.status(404).json({ error: 'New reference not found' });
+        return res.status(404).json({ error: "New reference not found" });
       }
 
       if (bom.reference) {
@@ -125,10 +151,10 @@ const updateBOM = async (req, res) => {
     });
     await auditLog.save();
 
-    res.json({ message: 'BOM updated successfully', bom });
+    res.json({ message: "BOM updated successfully", bom });
   } catch (err) {
-    console.error('Error updating BOM:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error updating BOM:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -139,7 +165,7 @@ const deleteBOM = async (req, res) => {
 
     const bom = await BOM.findById(id);
     if (!bom) {
-      return res.status(404).json({ error: 'BOM not found' });
+      return res.status(404).json({ error: "BOM not found" });
     }
 
     // Remove BOM reference from associated Reference document
@@ -152,19 +178,21 @@ const deleteBOM = async (req, res) => {
     }
 
     // Delete associated ManufacturingProcesses and their ProcessResources
-    const manufacturingProcesses = await ManufacturingProcess.find({ bom: bom._id });
+    const manufacturingProcesses = await ManufacturingProcess.find({
+      bom: bom._id,
+    });
     for (const process of manufacturingProcesses) {
       // Delete ProcessResources associated with the ManufacturingProcess
       await ProcessResource.deleteMany({ manufacturingProcess: process._id });
       // Delete the ManufacturingProcess
-      await process.deleteOne()();
+      await process.deleteOne();
     }
 
     // Delete BOMResources associated with the BOM
     await BOMResource.deleteMany({ bom: bom._id });
 
     // Delete the BOM
-    await bom.deleteOne()();
+    await bom.deleteOne();
 
     const auditLog = new AuditLog({
       user: req.user.userId,
@@ -172,10 +200,10 @@ const deleteBOM = async (req, res) => {
     });
     await auditLog.save();
 
-    res.json({ message: 'BOM and associated data deleted successfully' });
+    res.json({ message: "BOM and associated data deleted successfully" });
   } catch (err) {
-    console.error('Error deleting BOM:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error deleting BOM:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -184,7 +212,7 @@ const recalculateBOMTotals = async (req, res) => {
   try {
     const bom = await BOM.findById(req.params.id);
     if (!bom) {
-      return res.status(404).json({ error: 'BOM not found' });
+      return res.status(404).json({ error: "BOM not found" });
     }
 
     await bom.calculateTotals();
@@ -196,13 +224,13 @@ const recalculateBOMTotals = async (req, res) => {
     await auditLog.save();
 
     res.json({
-      message: 'BOM totals recalculated',
+      message: "BOM totals recalculated",
       totalCost: bom.totalCost,
       totalTime: bom.totalTime,
     });
   } catch (err) {
-    console.error('Error recalculating BOM totals:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error recalculating BOM totals:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 

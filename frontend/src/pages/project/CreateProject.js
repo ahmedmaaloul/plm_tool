@@ -1,6 +1,6 @@
 // src/pages/CreateProject.js
 import React, { useState, useContext } from 'react';
-import { ProjectContext } from '../context/ProjectContext';
+import { ProjectContext } from '../../context/ProjectContext';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 

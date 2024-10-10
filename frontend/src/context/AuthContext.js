@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }) => {
       const userInfo = decodeToken(token);
       if (userInfo) {
         setUser(userInfo);
-        fetchUserRoles(userInfo._id);
+        fetchUserRoles(userInfo.userId);
       } else {
         // Token is invalid or expired
         localStorage.removeItem('token');
@@ -28,11 +28,10 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (credentials) => {
+  const login = async (username,password) => {
     try {
       // Perform login API call and get token
-      console.log(credentials)
-      const response = await axios.post(`${API_BASE_URL}/api/users/login`, credentials);
+      const response = await axios.post(`${API_BASE_URL}/api/users/login`, {username,password});
       const token = response.data.token;
       localStorage.setItem('token', token);
 
@@ -42,8 +41,9 @@ export const AuthProvider = ({ children }) => {
 
       // Fetch user roles
       console.log(`userInfo : ${userInfo}`)
-      console.log(`userInfo id : ${userInfo._id}`)
-      await fetchUserRoles(userInfo._id);
+      console.log(`userInfo id : ${userInfo.userId}`)
+      await fetchUserRoles(userInfo.userId);
+      return { success: true };
     } catch (err) {
       console.error('Login error:', err);
       throw err;
@@ -62,6 +62,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserRoles = async (userId) => {
     try {
+      console.log(userId)
       const response = await axios.get(`${API_BASE_URL}/api/roles/user/${userId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,

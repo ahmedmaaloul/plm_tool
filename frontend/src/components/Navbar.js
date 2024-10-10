@@ -1,7 +1,7 @@
 // src/components/Navbar.js
 import React, { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
 // Styled Components
@@ -51,11 +51,17 @@ const LogoutButton = styled.button`
 
 // Navbar Component
 const Navbar = () => {
-  const { user, userRoles } = useContext(AuthContext);
+  const { user, userRoles, logout } = useContext(AuthContext);
+  const navigate = useNavigate(); // useNavigate for redirection after logout
 
   const hasAccess = (accessRight) => {
     if (user && user.fullAccess) return true; // Admins have full access
     return userRoles.some((role) => role.accessRights.includes(accessRight));
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login"); // Redirect to login after logout
   };
 
   return (
@@ -76,7 +82,7 @@ const Navbar = () => {
               </>
             )}
             <NavbarItem>
-              <StyledLink to="/tasks">Tasks</StyledLink>
+              <StyledLink to="/my_tasks">My Tasks</StyledLink>
             </NavbarItem>
 
             {hasAccess("Product") && (
@@ -96,12 +102,17 @@ const Navbar = () => {
                 <StyledLink to="/boms">BOMs</StyledLink>
               </NavbarItem>
             )}
-
-            {hasAccess("Workflow") && (
+            {hasAccess("BOMAndSuppliers") && (
               <NavbarItem>
-                <StyledLink to="/workflows">Workflows</StyledLink>
+                <StyledLink to="/suppliers">Suppliers</StyledLink>
               </NavbarItem>
             )}
+            {hasAccess("BOMAndSuppliers") && (
+              <NavbarItem>
+                <StyledLink to="/resources">Resources</StyledLink>
+              </NavbarItem>
+            )}
+
 
             {user.fullAccess && (
               <>
@@ -113,9 +124,7 @@ const Navbar = () => {
             )}
 
             <NavbarItem>
-              <LogoutButton onClick={() => /* Implement logout */ null}>
-                Logout
-              </LogoutButton>
+              <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
             </NavbarItem>
           </>
         ) : (

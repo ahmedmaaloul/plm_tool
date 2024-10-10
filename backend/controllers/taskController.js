@@ -203,6 +203,11 @@ const deleteTask = async (req, res) => {
 // Get Tasks Assigned to the User
 const getUserTasks = async (req, res) => {
   try {
+    console.log(req.user.userId)
+
+    console.log(req.user.userId)
+
+    console.log(req.user.userId)
     const userRoles = await Role.find({ user: req.user.userId });
     const roleIds = userRoles.map((role) => role._id);
 
