@@ -1,6 +1,6 @@
 // src/pages/ProjectsList.js
 import React, { useEffect, useContext, useState } from 'react';
-import { ProjectContext } from '../context/ProjectContext';
+import { ProjectContext } from '../../context/ProjectContext';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 

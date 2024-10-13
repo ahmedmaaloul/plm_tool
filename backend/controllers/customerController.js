@@ -1,7 +1,7 @@
-const Customer = require('../models/Customer');
-const CustomerNeed = require('../models/CustomerNeed');
-const Invoice = require('../models/Invoice');
-const AuditLog = require('../models/AuditLog');
+const Customer = require("../models/Customer");
+const CustomerNeed = require("../models/CustomerNeed");
+const Invoice = require("../models/Invoice");
+const AuditLog = require("../models/AuditLog");
 
 /**
  * Create a new Customer
@@ -11,7 +11,9 @@ const createCustomer = async (req, res) => {
     const { name, contactInfo } = req.body;
 
     if (!name || !contactInfo) {
-      return res.status(400).json({ error: 'Name and contact information are required.' });
+      return res
+        .status(400)
+        .json({ error: "Name and contact information are required." });
     }
 
     const customer = new Customer({
@@ -29,10 +31,12 @@ const createCustomer = async (req, res) => {
     });
     await auditLog.save();
 
-    res.status(201).json({ message: 'Customer created successfully.', customer });
+    res
+      .status(201)
+      .json({ message: "Customer created successfully.", customer });
   } catch (err) {
-    console.error('Error creating customer:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error creating customer:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -42,13 +46,13 @@ const createCustomer = async (req, res) => {
 const getCustomers = async (req, res) => {
   try {
     const customers = await Customer.find()
-      .populate('customerNeeds', 'description') // Populate customerNeeds if needed
-      .populate('invoices', 'amount date'); // Populate invoices if needed
+      .populate("customerNeeds", "description") // Populate customerNeeds if needed
+      .populate("invoices", "amount date"); // Populate invoices if needed
 
     res.json({ customers });
   } catch (err) {
-    console.error('Error fetching customers:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching customers:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -60,17 +64,23 @@ const getCustomerById = async (req, res) => {
     const { id } = req.params;
 
     const customer = await Customer.findById(id)
-      .populate('customerNeeds', 'description')
-      .populate('invoices', 'amount date');
+      .populate({
+        path: "customerNeeds",
+        populate: {
+          path: "requirements",
+          select: "description", // Fields to include from the `requirements` collection
+        },
+      })
+      .populate("invoices", "filename");
 
     if (!customer) {
-      return res.status(404).json({ error: 'Customer not found.' });
+      return res.status(404).json({ error: "Customer not found." });
     }
 
     res.json({ customer });
   } catch (err) {
-    console.error('Error fetching customer:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching customer:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -84,7 +94,7 @@ const updateCustomer = async (req, res) => {
 
     const customer = await Customer.findById(id);
     if (!customer) {
-      return res.status(404).json({ error: 'Customer not found.' });
+      return res.status(404).json({ error: "Customer not found." });
     }
 
     if (name) customer.name = name;
@@ -98,10 +108,10 @@ const updateCustomer = async (req, res) => {
     });
     await auditLog.save();
 
-    res.json({ message: 'Customer updated successfully.', customer });
+    res.json({ message: "Customer updated successfully.", customer });
   } catch (err) {
-    console.error('Error updating customer:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error updating customer:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -113,11 +123,11 @@ const deleteCustomer = async (req, res) => {
     const { id } = req.params;
 
     const customer = await Customer.findById(id)
-      .populate('customerNeeds')
-      .populate('invoices');
+      .populate("customerNeeds")
+      .populate("invoices");
 
     if (!customer) {
-      return res.status(404).json({ error: 'Customer not found.' });
+      return res.status(404).json({ error: "Customer not found." });
     }
 
     // Check if Customer has associated CustomerNeeds or Invoices
@@ -126,7 +136,8 @@ const deleteCustomer = async (req, res) => {
       (customer.invoices && customer.invoices.length > 0)
     ) {
       return res.status(400).json({
-        error: 'Cannot delete customer; it has associated customer needs or invoices.',
+        error:
+          "Cannot delete customer; it has associated customer needs or invoices.",
       });
     }
 
@@ -138,10 +149,10 @@ const deleteCustomer = async (req, res) => {
     });
     await auditLog.save();
 
-    res.json({ message: 'Customer deleted successfully.' });
+    res.json({ message: "Customer deleted successfully." });
   } catch (err) {
-    console.error('Error deleting customer:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error deleting customer:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 

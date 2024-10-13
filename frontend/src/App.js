@@ -6,7 +6,7 @@ import Navbar from './components/Navbar';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import ProjectsList from './pages/ProjectsList';
+import ProjectsList from './pages/project/ProjectsList';
 import ProjectDetails from './pages/project/ProjectDetails';
 import CreateProject from './pages/project/CreateProject';
 import EditProject from './pages/project/EditProject';
@@ -20,6 +20,8 @@ import BOMDetails from './pages/bom/BOMDetails';
 import BOMList from './pages/bom/BOMList';
 import SupplierDashboard from './pages/supplier/SupplierDashboard';
 import ResourceDashboard from './pages/resource/ResourceDashboard';
+import CustomerDashboard from './pages/customer/CustomerDashboard';
+import CustomerDetails from './pages/customer/CustomerDetails';
 
 
 function App() {
@@ -138,6 +140,23 @@ function App() {
           element={
             <ProtectedRoute accessRight="BOMAndSuppliers">
               <ResourceDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/customers"
+          element={
+            <ProtectedRoute accessRight="CustomersAndRequirements">
+              <CustomerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/customers/:id"
+          element={
+            <ProtectedRoute accessRight="CustomersAndRequirements">
+              <CustomerDetails />
             </ProtectedRoute>
           }
         />

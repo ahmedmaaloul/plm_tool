@@ -102,6 +102,8 @@ const updateCustomerNeed = async (req, res) => {
   try {
     const { id } = req.params;
     const { description, customer, requirements } = req.body;
+    console.log(customer)
+
 
     const customerNeed = await CustomerNeed.findById(id).populate('customer');
     if (!customerNeed) {
@@ -109,8 +111,8 @@ const updateCustomerNeed = async (req, res) => {
     }
 
     // Keep track of old customer ID
-    const oldCustomerId = customerNeed.customer.toString();
-
+    const oldCustomerId = customerNeed.customer._id.toString();
+    console.log(oldCustomerId)
     // Update fields if provided
     if (description) customerNeed.description = description;
 
@@ -120,6 +122,7 @@ const updateCustomerNeed = async (req, res) => {
       if (!newCustomer) {
         return res.status(404).json({ error: 'New customer not found.' });
       }
+
 
       // Remove CustomerNeed from old Customer's customerNeeds array
       const oldCustomer = await Customer.findById(oldCustomerId);

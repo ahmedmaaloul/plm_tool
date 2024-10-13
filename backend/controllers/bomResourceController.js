@@ -97,7 +97,16 @@ const getBOMResourceById = async (req, res) => {
 // Update a BOMResource
 const updateBOMResource = async (req, res) => {
   try {
-    const { quantity } = req.body;
+    let { quantity } = req.body;
+
+    // Convert quantity to a number if it's a string and check if it's a valid number
+    if (isNaN(quantity)) {
+      return res.status(400).json({ error: 'Invalid quantity. Must be a number.' });
+    }
+
+    // Ensure quantity is a number (either originally a number or converted from a string)
+    quantity = parseFloat(quantity);
+    console.log(typeof quantity);
 
     const bomResource = await BOMResource.findById(req.params.id);
 
@@ -106,7 +115,7 @@ const updateBOMResource = async (req, res) => {
     }
 
     // Update fields if provided
-    if (typeof quantity === 'number') bomResource.quantity = quantity;
+    if (!isNaN(quantity)) bomResource.quantity = quantity;
 
     // Recalculate totalCost and totalTime
     const resource = await Resource.findById(bomResource.resource);
@@ -132,6 +141,7 @@ const updateBOMResource = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
+
 
 // Delete a BOMResource
 const deleteBOMResource = async (req, res) => {

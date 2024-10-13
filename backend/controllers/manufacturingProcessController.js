@@ -1,17 +1,15 @@
-// controllers/manufacturingProcessController.js
-
 const ManufacturingProcess = require('../models/ManufacturingProcess');
 const BOM = require('../models/BOM');
-const ProcessResource = require('../models/ProcessResource');
+const Resource = require('../models/Resource'); // Added
 const AuditLog = require('../models/AuditLog');
 
 // Create a new ManufacturingProcess
 const createManufacturingProcess = async (req, res) => {
   try {
-    const { name, details, bomId } = req.body;
+    const { name, details, bomId, resourceId, quantity } = req.body;
 
-    if (!name || !details || !bomId) {
-      return res.status(400).json({ error: 'Name, details, and bomId are required' });
+    if (!name || !details || !bomId || !resourceId || quantity === undefined) {
+      return res.status(400).json({ error: 'Name, details, bomId, resourceId, and quantity are required' });
     }
 
     const bom = await BOM.findById(bomId);
@@ -19,12 +17,23 @@ const createManufacturingProcess = async (req, res) => {
       return res.status(404).json({ error: 'BOM not found' });
     }
 
+    const resource = await Resource.findById(resourceId);
+    if (!resource) {
+      return res.status(404).json({ error: 'Resource not found' });
+    }
+
     const manufacturingProcess = new ManufacturingProcess({
       name,
       details,
       bom: bomId,
+      resource: resourceId,
+      quantity,
     });
 
+    // Calculate totals
+    await manufacturingProcess.calculateTotals();
+
+    // Save the manufacturing process
     await manufacturingProcess.save();
 
     // Add manufacturingProcess to BOM
@@ -56,7 +65,7 @@ const getManufacturingProcessesByBOM = async (req, res) => {
   try {
     const { bomId } = req.params;
 
-    const manufacturingProcesses = await ManufacturingProcess.find({ bom: bomId }).populate('processResources');
+    const manufacturingProcesses = await ManufacturingProcess.find({ bom: bomId }).populate('resource');
 
     res.json({ manufacturingProcesses });
   } catch (err) {
@@ -68,10 +77,7 @@ const getManufacturingProcessesByBOM = async (req, res) => {
 // Get a ManufacturingProcess by ID
 const getManufacturingProcessById = async (req, res) => {
   try {
-    const manufacturingProcess = await ManufacturingProcess.findById(req.params.id).populate({
-      path: 'processResources',
-      populate: { path: 'resource' },
-    });
+    const manufacturingProcess = await ManufacturingProcess.findById(req.params.id).populate('resource');
 
     if (!manufacturingProcess) {
       return res.status(404).json({ error: 'Manufacturing process not found' });
@@ -87,7 +93,7 @@ const getManufacturingProcessById = async (req, res) => {
 // Update a ManufacturingProcess
 const updateManufacturingProcess = async (req, res) => {
   try {
-    const { name, details, bomId } = req.body;
+    const { name, details, bomId, resourceId, quantity } = req.body;
 
     const manufacturingProcess = await ManufacturingProcess.findById(req.params.id);
 
@@ -98,6 +104,29 @@ const updateManufacturingProcess = async (req, res) => {
     // Update fields if provided
     if (name) manufacturingProcess.name = name;
     if (details) manufacturingProcess.details = details;
+
+    let resourceOrQuantityChanged = false;
+
+    // Handle resource update
+    if (resourceId && resourceId !== manufacturingProcess.resource.toString()) {
+      const newResource = await Resource.findById(resourceId);
+      if (!newResource) {
+        return res.status(404).json({ error: 'Resource not found' });
+      }
+      manufacturingProcess.resource = resourceId;
+      resourceOrQuantityChanged = true;
+    }
+
+    // Handle quantity update
+    if (quantity !== undefined && quantity !== manufacturingProcess.quantity) {
+      manufacturingProcess.quantity = quantity;
+      resourceOrQuantityChanged = true;
+    }
+
+    // Recalculate totals if resource or quantity changed
+    if (resourceOrQuantityChanged) {
+      await manufacturingProcess.calculateTotals();
+    }
 
     // Handle BOM change
     if (bomId && bomId !== manufacturingProcess.bom.toString()) {
@@ -121,16 +150,14 @@ const updateManufacturingProcess = async (req, res) => {
       // Recalculate totals for both BOMs
       await currentBOM.calculateTotals();
       await newBOM.calculateTotals();
+    } else {
+      // Recalculate totals for the BOM
+      const bom = await BOM.findById(manufacturingProcess.bom);
+      await bom.calculateTotals();
     }
 
+    // Save the updated manufacturing process
     await manufacturingProcess.save();
-
-    // Recalculate totals for the manufacturing process
-    await manufacturingProcess.calculateTotals();
-
-    // Recalculate totals for the BOM
-    const bom = await BOM.findById(manufacturingProcess.bom);
-    await bom.calculateTotals();
 
     // Create an audit log entry
     const auditLog = new AuditLog({
@@ -161,9 +188,6 @@ const deleteManufacturingProcess = async (req, res) => {
     const bom = await BOM.findById(manufacturingProcess.bom);
     bom.manufacturingProcesses.pull(manufacturingProcess._id);
     await bom.save();
-
-    // Delete associated ProcessResources
-    await ProcessResource.deleteMany({ manufacturingProcess: manufacturingProcess._id });
 
     // Delete manufacturingProcess
     await manufacturingProcess.deleteOne();

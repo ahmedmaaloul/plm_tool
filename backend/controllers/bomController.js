@@ -88,8 +88,7 @@ const getBOMById = async (req, res) => {
       .populate({
         path: "manufacturingProcesses",
         populate: {
-          path: "processResources",
-          populate: { path: "resource" },
+          path: "resource",
         },
       })
       .populate({

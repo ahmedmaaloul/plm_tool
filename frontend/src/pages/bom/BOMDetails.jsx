@@ -1,12 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import styled from 'styled-components';
-import axios from 'axios';
-import { Pie } from 'react-chartjs-2';
-import 'chart.js/auto';
-import AddBOMResourceForm from '../../components/bom/AddBOMResourceForm';
-import AddManufacturingProcessForm from '../../components/bom/AddManufacturingProcessForm';
-import EditManufacturingProcessForm from '../../components/bom/EditManufacturingProcessForm';
+// BOMDetails.jsx
+
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import styled from "styled-components";
+import axios from "axios";
+import { Pie } from "react-chartjs-2";
+import "chart.js/auto";
+import AddBOMResourceForm from "../../components/bom/AddBOMResourceForm";
+import AddManufacturingProcessForm from "../../components/bom/AddManufacturingProcessForm";
+import EditManufacturingProcessForm from "../../components/bom/EditManufacturingProcessForm";
+import EditBOMResourceForm from "../../components/bom/EditBOMResourceForm";
 
 const Container = styled.div`
   padding: 20px;
@@ -41,7 +44,8 @@ const Table = styled.table`
   border-collapse: collapse;
   margin-bottom: 20px;
 
-  th, td {
+  th,
+  td {
     border: 1px solid #ff5757;
     padding: 10px;
     text-align: left;
@@ -114,24 +118,35 @@ const BOMDetails = () => {
   const [showEditProcessModal, setShowEditProcessModal] = useState(false);
   const [processToEdit, setProcessToEdit] = useState(null);
   const [showEditNameModal, setShowEditNameModal] = useState(false);
-  const [newBOMName, setNewBOMName] = useState('');
-  const [error, setError] = useState('');
+  const [newBOMName, setNewBOMName] = useState("");
+  const [error, setError] = useState("");
 
-  const API_BASE_URL = 'http://localhost:5000';
+  const API_BASE_URL = "http://localhost:5000";
+  const [showEditResourceModal, setShowEditResourceModal] = useState(false);
+  const [resourceToEdit, setResourceToEdit] = useState(null);
+
+  // Function to handle editing a BOM resource
+  const handleEditBOMResource = (resource) => {
+    setResourceToEdit(resource);
+    setShowEditResourceModal(true);
+  };
 
   useEffect(() => {
     const fetchBOM = async () => {
+      setLoading(true);
       try {
         const response = await axios.get(`${API_BASE_URL}/api/bom/${bomId}`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         });
+        console.log(response);
         setBOM(response.data.bom);
-        setNewBOMName(response.data.bom.name); // Set the initial value for BOM name in the edit modal
-        setLoading(false);
+        setNewBOMName(response.data.bom.name);
       } catch (err) {
-        setError('Error fetching BOM details.');
+        console.log(err);
+        setError("Error fetching BOM details.");
+      } finally {
         setLoading(false);
       }
     };
@@ -145,14 +160,14 @@ const BOMDetails = () => {
         { name: newBOMName },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
         }
       );
       setBOM((prev) => ({ ...prev, name: newBOMName }));
       setShowEditNameModal(false);
     } catch (err) {
-      setError('Error updating BOM name.');
+      setError("Error updating BOM name.");
     }
   };
 
@@ -160,7 +175,7 @@ const BOMDetails = () => {
     try {
       await axios.delete(`${API_BASE_URL}/api/bom-resources/${brId}`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
       });
       const deletedBR = bom.bomResources.find((br) => br._id === brId);
@@ -171,26 +186,33 @@ const BOMDetails = () => {
         totalTime: prev.totalTime - deletedBR.totalTime,
       }));
     } catch (err) {
-      setError('Error deleting BOM Resource.');
+      setError("Error deleting BOM Resource.");
     }
   };
 
   const handleDeleteManufacturingProcess = async (mpId) => {
     try {
-      await axios.delete(`${API_BASE_URL}/api/manufacturing-processes/${mpId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      const deletedMP = bom.manufacturingProcesses.find((mp) => mp._id === mpId);
+      await axios.delete(
+        `${API_BASE_URL}/api/manufacturing-processes/${mpId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      const deletedMP = bom.manufacturingProcesses.find(
+        (mp) => mp._id === mpId
+      );
       setBOM((prev) => ({
         ...prev,
-        manufacturingProcesses: prev.manufacturingProcesses.filter((mp) => mp._id !== mpId),
+        manufacturingProcesses: prev.manufacturingProcesses.filter(
+          (mp) => mp._id !== mpId
+        ),
         totalCost: prev.totalCost - deletedMP.totalCost,
         totalTime: prev.totalTime - deletedMP.totalTime,
       }));
     } catch (err) {
-      setError('Error deleting Manufacturing Process.');
+      setError("Error deleting Manufacturing Process.");
     }
   };
 
@@ -199,28 +221,40 @@ const BOMDetails = () => {
     setShowEditProcessModal(true);
   };
 
-  // Calculate specific totals for Pie Chart
+  // Calculate totals for Pie Chart
   const calculateSpecificTotals = () => {
     if (!bom) return { bomResourcesTotal: 0, manufacturingProcessesTotal: 0 };
-    const bomResourcesTotal = bom.bomResources.reduce((sum, br) => sum + br.totalCost, 0);
-    const manufacturingProcessesTotal = bom.manufacturingProcesses.reduce((sum, mp) => sum + mp.totalCost, 0);
+    const bomResourcesTotal = bom.bomResources.reduce(
+      (sum, br) => sum + br.totalCost,
+      0
+    );
+    const manufacturingProcessesTotal = bom.manufacturingProcesses.reduce(
+      (sum, mp) => sum + mp.totalCost,
+      0
+    );
     return { bomResourcesTotal, manufacturingProcessesTotal };
   };
 
-  const { bomResourcesTotal, manufacturingProcessesTotal } = calculateSpecificTotals();
+  const { bomResourcesTotal, manufacturingProcessesTotal } =
+    calculateSpecificTotals();
 
   const pieData = {
-    labels: ['BOM Resources', 'Manufacturing Processes'],
+    labels: ["BOM Resources", "Manufacturing Processes"],
     datasets: [
       {
         data: [bomResourcesTotal, manufacturingProcessesTotal],
-        backgroundColor: ['#FF6384', '#36A2EB'],
+        backgroundColor: ["#FF6384", "#36A2EB"],
       },
     ],
   };
 
   if (loading) {
     return <p>Loading BOM details...</p>;
+  }
+
+  // Only render when bom data is loaded
+  if (!bom) {
+    return <p>No BOM data available.</p>;
   }
 
   return (
@@ -236,9 +270,15 @@ const BOMDetails = () => {
         </p>
         <div>
           <Button onClick={() => navigate(-1)}>Back</Button>
-          <Button onClick={() => setShowAddResourceModal(true)}>Add BOM Resource</Button>
-          <Button onClick={() => setShowAddProcessModal(true)}>Add Manufacturing Process</Button>
-          <Button onClick={() => setShowEditNameModal(true)}>Edit BOM Name</Button>
+          <Button onClick={() => setShowAddResourceModal(true)}>
+            Add BOM Resource
+          </Button>
+          <Button onClick={() => setShowAddProcessModal(true)}>
+            Add Manufacturing Process
+          </Button>
+          <Button onClick={() => setShowEditNameModal(true)}>
+            Edit BOM Name
+          </Button>
         </div>
       </Section>
 
@@ -267,15 +307,19 @@ const BOMDetails = () => {
             <tbody>
               {bom.bomResources.map((br) => (
                 <tr key={br._id}>
-                  <td>{br.resource.name}</td>
-                  <td>{br.quantity} {br.resource.unit}</td>
+                  <td>{br.resource ? br.resource.name : "No Resource"}</td>
+                  <td>
+                    {br.quantity} {br.resource ? br.resource.unit : ""}
+                  </td>
                   <td>${br.totalCost.toFixed(2)}</td>
                   <td>{br.totalTime} hours</td>
                   <td>
-                    <Link to={`/boms/${bom._id}/resources/${br._id}/edit`}>
-                      <Button>Edit</Button>
-                    </Link>
-                    <Button onClick={() => handleDeleteBOMResource(br._id)}>Delete</Button>
+                    <Button onClick={() => handleEditBOMResource(br)}>
+                      Edit
+                    </Button>
+                    <Button onClick={() => handleDeleteBOMResource(br._id)}>
+                      Delete
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -288,13 +332,14 @@ const BOMDetails = () => {
 
       {/* Manufacturing Processes Section */}
       <Section>
-        <SubTitle>Manufacturing Processes and Process Resources</SubTitle>
+        <SubTitle>Manufacturing Processes</SubTitle>
         {bom.manufacturingProcesses.length > 0 ? (
           <Table>
             <thead>
               <tr>
                 <th>Process Name</th>
-                <th>Process Resource</th>
+                <th>Details</th>
+                <th>Resource</th>
                 <th>Quantity</th>
                 <th>Total Cost</th>
                 <th>Total Time</th>
@@ -303,25 +348,22 @@ const BOMDetails = () => {
             </thead>
             <tbody>
               {bom.manufacturingProcesses.map((mp) => (
-                <>
-                  <tr key={mp._id}>
-                    <td>{mp.name}</td>
-                    <td colSpan="5">{mp.details}</td>
-                  </tr>
-                  {mp.processResources.map((pr) => (
-                    <tr key={pr._id}>
-                      <td></td>
-                      <td>{pr.resource.name}</td>
-                      <td>{pr.quantity}</td>
-                      <td>${pr.totalCost.toFixed(2)}</td>
-                      <td>{pr.totalTime} hours</td>
-                      <td>
-                        <Button onClick={() => handleEditProcess(mp)}>Edit</Button>
-                        <Button onClick={() => handleDeleteManufacturingProcess(mp._id)}>Delete</Button>
-                      </td>
-                    </tr>
-                  ))}
-                </>
+                <tr key={mp._id}>
+                  <td>{mp.name}</td>
+                  <td>{mp.details}</td>
+                  <td>{mp.resource ? mp.resource.name : "No Resource"}</td>
+                  <td>{mp.quantity}</td>
+                  <td>${mp.totalCost.toFixed(2)}</td>
+                  <td>{mp.totalTime} hours</td>
+                  <td>
+                    <Button onClick={() => handleEditProcess(mp)}>Edit</Button>
+                    <Button
+                      onClick={() => handleDeleteManufacturingProcess(mp._id)}
+                    >
+                      Delete
+                    </Button>
+                  </td>
+                </tr>
               ))}
             </tbody>
           </Table>
@@ -334,8 +376,31 @@ const BOMDetails = () => {
       {showAddResourceModal && (
         <ModalOverlay>
           <ModalContent>
-            <CloseButton onClick={() => setShowAddResourceModal(false)}>&times;</CloseButton>
-            <AddBOMResourceForm bomId={bom._id} onResourceAdded={setBOM} />
+            <CloseButton onClick={() => setShowAddResourceModal(false)}>
+              &times;
+            </CloseButton>
+            <AddBOMResourceForm
+              bomId={bom._id}
+              onResourceAdded={(newBOMResource) => {
+                // Fetch updated BOM data to ensure consistency
+                setShowAddResourceModal(false);
+                setLoading(true);
+                axios
+                  .get(`${API_BASE_URL}/api/bom/${bomId}`, {
+                    headers: {
+                      Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                  })
+                  .then((response) => {
+                    setBOM(response.data.bom);
+                    setLoading(false);
+                  })
+                  .catch((err) => {
+                    setError("Error fetching updated BOM.");
+                    setLoading(false);
+                  });
+              }}
+            />
           </ModalContent>
         </ModalOverlay>
       )}
@@ -344,17 +409,62 @@ const BOMDetails = () => {
       {showAddProcessModal && (
         <ModalOverlay>
           <ModalContent>
-            <CloseButton onClick={() => setShowAddProcessModal(false)}>&times;</CloseButton>
+            <CloseButton onClick={() => setShowAddProcessModal(false)}>
+              &times;
+            </CloseButton>
             <AddManufacturingProcessForm
               bomId={bom._id}
               onProcessAdded={(newProcess) => {
-                setBOM((prev) => ({
-                  ...prev,
-                  manufacturingProcesses: [...prev.manufacturingProcesses, newProcess],
-                  totalCost: prev.totalCost + newProcess.totalCost,
-                  totalTime: prev.totalTime + newProcess.totalTime,
-                }));
+                // Fetch updated BOM data to ensure consistency
                 setShowAddProcessModal(false);
+                setLoading(true);
+                axios
+                  .get(`${API_BASE_URL}/api/bom/${bomId}`, {
+                    headers: {
+                      Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                  })
+                  .then((response) => {
+                    setBOM(response.data.bom);
+                    setLoading(false);
+                  })
+                  .catch((err) => {
+                    setError("Error fetching updated BOM.");
+                    setLoading(false);
+                  });
+              }}
+            />
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
+      {/* Edit Manufacturing Process Modal */}
+      {showEditProcessModal && processToEdit && (
+        <ModalOverlay>
+          <ModalContent>
+            <CloseButton onClick={() => setShowEditProcessModal(false)}>
+              &times;
+            </CloseButton>
+            <EditManufacturingProcessForm
+              manufacturingProcess={processToEdit}
+              onProcessUpdated={(updatedProcess) => {
+                // Fetch updated BOM data to ensure consistency
+                setShowEditProcessModal(false);
+                setLoading(true);
+                axios
+                  .get(`${API_BASE_URL}/api/bom/${bomId}`, {
+                    headers: {
+                      Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                  })
+                  .then((response) => {
+                    setBOM(response.data.bom);
+                    setLoading(false);
+                  })
+                  .catch((err) => {
+                    setError("Error fetching updated BOM.");
+                    setLoading(false);
+                  });
               }}
             />
           </ModalContent>
@@ -365,7 +475,9 @@ const BOMDetails = () => {
       {showEditNameModal && (
         <ModalOverlay>
           <ModalContent>
-            <CloseButton onClick={() => setShowEditNameModal(false)}>&times;</CloseButton>
+            <CloseButton onClick={() => setShowEditNameModal(false)}>
+              &times;
+            </CloseButton>
             <h3>Edit BOM Name</h3>
             <Input
               type="text"
@@ -377,39 +489,46 @@ const BOMDetails = () => {
         </ModalOverlay>
       )}
 
-      {/* Edit Manufacturing Process Modal */}
-      {showEditProcessModal && processToEdit && (
-        <ModalOverlay>
-          <ModalContent>
-            <CloseButton onClick={() => setShowEditProcessModal(false)}>&times;</CloseButton>
-            <EditManufacturingProcessForm
-              manufacturingProcess={processToEdit}
-              onProcessUpdated={(updatedProcess) => {
-                setBOM((prev) => ({
-                  ...prev,
-                  manufacturingProcesses: prev.manufacturingProcesses.map((mp) =>
-                    mp._id === updatedProcess._id ? updatedProcess : mp
-                  ),
-                  totalCost:
-                    prev.totalCost - processToEdit.totalCost + updatedProcess.totalCost,
-                  totalTime:
-                    prev.totalTime - processToEdit.totalTime + updatedProcess.totalTime,
-                }));
-                setShowEditProcessModal(false);
-              }}
-            />
-          </ModalContent>
-        </ModalOverlay>
-      )}
-
       {/* Error Modal */}
       {error && (
         <ModalOverlay>
           <ModalContent>
-            <CloseButton onClick={() => setError('')}>&times;</CloseButton>
+            <CloseButton onClick={() => setError("")}>&times;</CloseButton>
             <h3>Error</h3>
             <p>{error}</p>
-            <Button onClick={() => setError('')}>Close</Button>
+            <Button onClick={() => setError("")}>Close</Button>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+      {showEditResourceModal && resourceToEdit && (
+        <ModalOverlay>
+          <ModalContent>
+            <CloseButton onClick={() => setShowEditResourceModal(false)}>
+              &times;
+            </CloseButton>
+            <EditBOMResourceForm
+              resourceToEdit={resourceToEdit}
+              onResourceUpdated={() => {
+                // Fetch updated BOM data after editing a resource
+                setShowEditResourceModal(false);
+                setLoading(true);
+                axios
+                  .get(`${API_BASE_URL}/api/bom/${bomId}`, {
+                    headers: {
+                      Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                  })
+                  .then((response) => {
+                    setBOM(response.data.bom);
+                    setLoading(false);
+                  })
+                  .catch((err) => {
+                    setError("Error fetching updated BOM.");
+                    setLoading(false);
+                  });
+              }}
+              onClose={() => setShowEditResourceModal(false)}
+            />
           </ModalContent>
         </ModalOverlay>
       )}

@@ -13,8 +13,7 @@ const requirementController = require('../controllers/requirementController');
 router.post(
   '/',
   authMiddleware,
-  setProjectIdsFromCustomerNeed, // Sets req.params.projectIds based on customerNeed
-  roleMiddleware('manageRequirements'), // Requires role based on associated projects
+  roleMiddleware('CustomersAndRequirements'), // Requires role based on associated projects
   requirementController.createRequirement
 );
 
@@ -29,8 +28,7 @@ router.get(
 router.get(
   '/:id',
   authMiddleware,
-  setProjectIdsFromCustomerNeed, // Sets req.params.projectIds based on requirement
-  roleMiddleware('viewRequirements'), // Requires role based on associated projects
+  roleMiddleware('CustomersAndRequirements'), // Requires role based on associated projects
   requirementController.getRequirementById
 );
 
@@ -38,8 +36,7 @@ router.get(
 router.put(
   '/:id',
   authMiddleware,
-  setProjectIdsFromCustomerNeed, // Sets req.params.projectIds based on requirement
-  roleMiddleware('manageRequirements'), // Requires role based on associated projects
+  roleMiddleware('CustomersAndRequirements'), // Requires role based on associated projects
   requirementController.updateRequirement
 );
 
@@ -47,8 +44,7 @@ router.put(
 router.delete(
   '/:id',
   authMiddleware,
-  setProjectIdsFromCustomerNeed, // Sets req.params.projectIds based on requirement
-  roleMiddleware('manageRequirements'), // Requires role based on associated projects
+  roleMiddleware('CustomersAndRequirements'), // Requires role based on associated projects
   requirementController.deleteRequirement
 );
 

@@ -60,6 +60,7 @@ router.post(
 router.get(
   '/',
   authMiddleware,
+  roleMiddleware('Product'),
   productController.getProducts
 );
 
@@ -67,7 +68,7 @@ router.get(
 router.get(
   '/:id',
   authMiddleware,
-  setProjectIdsFromProduct,
+  roleMiddleware('Product'),
   productController.getProductById
 );
 
@@ -75,7 +76,7 @@ router.get(
 router.put(
   '/:id',
   authMiddleware,
-  setProjectIdsFromProduct,
+  roleMiddleware('Product'),
   productController.updateProduct
 );
 
@@ -83,7 +84,7 @@ router.put(
 router.delete(
   '/:id',
   authMiddleware,
-  setProjectIdsFromProduct,
+  roleMiddleware('Product'),
   productController.deleteProduct
 );
 
