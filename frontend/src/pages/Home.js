@@ -3,7 +3,7 @@ import React from "react";
 import styled, { keyframes } from "styled-components";
 import { FaPlus } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import LogoImage from "../assets/logo.png"; // Ensure you have a logo image in assets folder
+import LogoImage from "../assets/nobg-PLM.png"; // Ensure you have a logo image in the assets folder
 
 // Keyframes for bubble animation
 const float = keyframes`
@@ -50,6 +50,7 @@ const Bubble = styled.div`
 const LeftSection = styled.div`
   flex: 1;
   display: flex;
+  flex-direction: column; /* Arrange items vertically */
   align-items: center;
   justify-content: center;
 `;
@@ -123,20 +124,28 @@ const Logo = styled.img`
 `;
 
 const Home = () => {
-
   return (
     <HomeContainer>
       {/* Gradient bubbles */}
-      <Bubble size="400px" top="10%" left="5%" gradient="linear-gradient(135deg, #ff5757, #ffd1d1)" />
-      <Bubble size="300px" top="50%" left="30%" gradient="linear-gradient(135deg, #ffd1d1, #ff5757)" />
+      <Bubble
+        size="400px"
+        top="10%"
+        left="5%"
+        gradient="linear-gradient(135deg, #ff5757, #ffd1d1)"
+      />
+      <Bubble
+        size="300px"
+        top="50%"
+        left="30%"
+        gradient="linear-gradient(135deg, #ffd1d1, #ff5757)"
+      />
 
-      <LeftSection>
-      </LeftSection>
+      <LeftSection></LeftSection>
 
       <RightSection>
+        <Logo src={LogoImage} alt="Logo" />
         <WelcomeText>Welcome to Bena!</WelcomeText>
         <SubText>Immerse yourself in seamless product life management.</SubText>
-
       </RightSection>
     </HomeContainer>
   );
