@@ -1,43 +1,179 @@
+// src/pages/ResourceDashboard.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import styled from 'styled-components';
+import { FiSearch } from 'react-icons/fi';
+import { AiOutlinePlus, AiOutlineEdit, AiOutlineDelete } from 'react-icons/ai';
+import { FaFilter } from 'react-icons/fa';
 
 // Styled Components
 const Container = styled.div`
-  padding: 20px;
+  padding: 40px 20px;
+  max-width: 1300px;
+  margin: 0 auto;
+`;
+
+const Title = styled.h1`
+  color: #e30202;
+  text-align: center;
+  margin-bottom: 40px;
+`;
+
+const ActionBar = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+`;
+
+const SearchContainer = styled.div`
+  position: relative;
+  width: 300px;
+  margin-bottom: 10px;
+`;
+
+const SearchIcon = styled(FiSearch)`
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  color: #aaa;
+`;
+
+const SearchBar = styled.input`
+  padding: 10px 10px 10px 40px;
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 50px;
+  outline: none;
+  transition: border 0.3s;
+
+  &:focus {
+    border-color: #ff5757;
+  }
+`;
+
+const FilterContainer = styled.div`
+  position: relative;
+  width: 200px;
+  margin-bottom: 10px;
+`;
+
+const FilterIcon = styled(FaFilter)`
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  color: #aaa;
+`;
+
+const FilterSelect = styled.select`
+  padding: 10px 10px 10px 40px;
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 50px;
+  outline: none;
+  appearance: none;
+  background-color: transparent;
+  transition: border 0.3s;
+
+  &:focus {
+    border-color: #ff5757;
+  }
+`;
+
+const AddButton = styled.button`
+  background-color: #ff5757;
+  color: #fff7eb;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  transition: background-color 0.3s;
+  margin-bottom: 10px;
+
+  &:hover {
+    background-color: #e04e4e;
+  }
+`;
+
+const PlusIcon = styled(AiOutlinePlus)`
+  margin-right: 8px;
+  font-size: 20px;
+`;
+
+const TableContainer = styled.div`
+  overflow-x: auto;
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
+  background-color: #fff7eb;
+  border-radius: 10px;
+  overflow: hidden;
+`;
+
+const Thead = styled.thead`
+  background-color: #ff5757;
+  color: white;
 `;
 
 const Th = styled.th`
-  background-color: #ff5757;
-  color: white;
-  padding: 10px;
+  padding: 15px;
   text-align: left;
+  font-size: 16px;
+  white-space: nowrap;
+`;
+
+const Tbody = styled.tbody`
+  color: #333;
+`;
+
+const Tr = styled.tr`
+  border-bottom: 1px solid #ddd;
+
+  &:nth-child(even) {
+    background-color: #ffecec;
+  }
+
+  &:hover {
+    background-color: #ffdada;
+  }
 `;
 
 const Td = styled.td`
-  padding: 10px;
-  border: 1px solid #ddd;
+  padding: 15px;
+  vertical-align: middle;
+  font-size: 15px;
+  white-space: nowrap;
 `;
 
-const Button = styled.button`
-  background-color: #ff5757;
-  color: #fff7eb;
-  padding: 10px;
+const ActionButtons = styled.div`
+  display: flex;
+  gap: 10px;
+`;
+
+const IconButton = styled.button`
+  background-color: transparent;
+  color: #ff5757;
   border: none;
-  border-radius: 5px;
   cursor: pointer;
-  margin: 5px;
+  font-size: 20px;
+  transition: color 0.3s;
+
+  &:hover {
+    color: #e04e4e;
+  }
 `;
 
-const SearchBar = styled.input`
-  padding: 10px;
-  width: 300px;
-  margin-bottom: 20px;
+const NoData = styled.p`
+  text-align: center;
+  color: #888;
+  padding: 20px;
+  font-size: 16px;
 `;
 
 const ModalOverlay = styled.div`
@@ -55,31 +191,81 @@ const ModalOverlay = styled.div`
 
 const ModalContent = styled.div`
   background-color: #fff7eb;
-  padding: 20px;
+  padding: 30px;
   border-radius: 10px;
-  width: 400px;
+  width: 500px;
+  position: relative;
+  max-height: 80vh;
+  overflow-y: auto;
+`;
+
+const ModalTitle = styled.h3`
+  margin-bottom: 20px;
+  color: #e30202;
+`;
+
+const Label = styled.label`
+  font-weight: bold;
+  margin-top: 10px;
+  display: block;
+  color: #333;
 `;
 
 const Input = styled.input`
-  padding: 8px;
-  margin: 10px 0;
+  padding: 10px;
+  margin: 5px 0 15px 0;
   width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  outline: none;
+  transition: border 0.3s;
+
+  &:focus {
+    border-color: #ff5757;
+  }
 `;
 
 const Select = styled.select`
-  padding: 8px;
-  margin: 10px 0;
+  padding: 10px;
+  margin: 5px 0 15px 0;
   width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  outline: none;
+  appearance: none;
+  background-color: transparent;
+  transition: border 0.3s;
+
+  &:focus {
+    border-color: #ff5757;
+  }
+`;
+
+const SaveButton = styled.button`
+  background-color: #ff5757;
+  color: #fff7eb;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 10px;
+  width: 100%;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #e04e4e;
+  }
 `;
 
 const CloseButton = styled.button`
   background-color: transparent;
   color: #ff5757;
   border: none;
-  font-size: 24px;
+  font-size: 28px;
   position: absolute;
   top: 10px;
-  right: 10px;
+  right: 15px;
   cursor: pointer;
 `;
 
@@ -143,22 +329,22 @@ const ResourceDashboard = () => {
   const handleSearch = (e) => {
     const term = e.target.value.toLowerCase();
     setSearchTerm(term);
-    setFilteredResources(
-      resources.filter((resource) =>
-        resource.name.toLowerCase().includes(term) &&
-        (!selectedSupplierFilter || resource.supplier._id === selectedSupplierFilter)
-      )
-    );
+    filterResources(term, selectedSupplierFilter);
   };
 
   // Filter resources by supplier
   const handleSupplierFilter = (e) => {
     const supplierId = e.target.value;
     setSelectedSupplierFilter(supplierId);
+    filterResources(searchTerm, supplierId);
+  };
+
+  // Helper function to filter resources
+  const filterResources = (term, supplierId) => {
     setFilteredResources(
       resources.filter(
         (resource) =>
-          (!searchTerm || resource.name.toLowerCase().includes(searchTerm)) &&
+          resource.name.toLowerCase().includes(term) &&
           (!supplierId || resource.supplier._id === supplierId)
       )
     );
@@ -243,82 +429,104 @@ const ResourceDashboard = () => {
 
   // Delete a resource
   const deleteResource = async (resourceId) => {
-    try {
-      await axios.delete(`${API_BASE_URL}/api/resources/${resourceId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-      });
-      fetchResources();
-    } catch (err) {
-      console.error('Error deleting resource:', err);
+    if (window.confirm('Are you sure you want to delete this resource?')) {
+      try {
+        await axios.delete(`${API_BASE_URL}/api/resources/${resourceId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        fetchResources();
+      } catch (err) {
+        console.error('Error deleting resource:', err);
+      }
     }
   };
 
   return (
     <Container>
-      <h1>Resources Dashboard</h1>
-      <Button onClick={() => handleModal(false)}>Add Resource</Button>
-      <SearchBar
-        type="text"
-        placeholder="Search resources by name"
-        value={searchTerm}
-        onChange={handleSearch}
-      />
-      <Select value={selectedSupplierFilter} onChange={handleSupplierFilter}>
-        <option value="">All Suppliers</option>
-        {suppliers.map((supplier) => (
-          <option key={supplier._id} value={supplier._id}>
-            {supplier.name}
-          </option>
-        ))}
-      </Select>
-      <Table>
-        <thead>
-          <tr>
-            <Th>Name</Th>
-            <Th>Type</Th>
-            <Th>Description</Th>
-            <Th>Unit Cost</Th>
-            <Th>Unit Time</Th>
-            <Th>Unit</Th>
-            <Th>Supplier</Th>
-            <Th>Actions</Th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredResources.length > 0 ? (
-            filteredResources.map((resource) => (
-              <tr key={resource._id}>
-                <Td>{resource.name}</Td>
-                <Td>{resource.type}</Td>
-                <Td>{resource.description}</Td>
-                <Td>{resource.unitCost}</Td>
-                <Td>{resource.unitTime}</Td>
-                <Td>{resource.unit}</Td>
-                <Td>{resource.supplier.name}</Td>
-                <Td>
-                  <Button onClick={() => handleModal(true, resource)}>Edit</Button>
-                  <Button onClick={() => deleteResource(resource._id)}>Delete</Button>
-                </Td>
-              </tr>
-            ))
-          ) : (
+      <Title>Resources Dashboard</Title>
+      <ActionBar>
+        <SearchContainer>
+          <SearchIcon />
+          <SearchBar
+            type="text"
+            placeholder="Search resources by name"
+            value={searchTerm}
+            onChange={handleSearch}
+          />
+        </SearchContainer>
+        <FilterContainer>
+          <FilterIcon />
+          <FilterSelect value={selectedSupplierFilter} onChange={handleSupplierFilter}>
+            <option value="">All Suppliers</option>
+            {suppliers.map((supplier) => (
+              <option key={supplier._id} value={supplier._id}>
+                {supplier.name}
+              </option>
+            ))}
+          </FilterSelect>
+        </FilterContainer>
+        <AddButton onClick={() => handleModal(false)}>
+          <PlusIcon /> Add Resource
+        </AddButton>
+      </ActionBar>
+      <TableContainer>
+        <Table>
+          <Thead>
             <tr>
-              <Td colSpan="8">No resources found</Td>
+              <Th>Name</Th>
+              <Th>Type</Th>
+              <Th>Description</Th>
+              <Th>Unit Cost</Th>
+              <Th>Unit Time</Th>
+              <Th>Unit</Th>
+              <Th>Supplier</Th>
+              <Th>Actions</Th>
             </tr>
-          )}
-        </tbody>
-      </Table>
+          </Thead>
+          <Tbody>
+            {filteredResources.length > 0 ? (
+              filteredResources.map((resource) => (
+                <Tr key={resource._id}>
+                  <Td>{resource.name}</Td>
+                  <Td>{resource.type}</Td>
+                  <Td>{resource.description}</Td>
+                  <Td>{resource.unitCost}</Td>
+                  <Td>{resource.unitTime}</Td>
+                  <Td>{resource.unit}</Td>
+                  <Td>{resource.supplier.name}</Td>
+                  <Td>
+                    <ActionButtons>
+                      <IconButton onClick={() => handleModal(true, resource)}>
+                        <AiOutlineEdit />
+                      </IconButton>
+                      <IconButton onClick={() => deleteResource(resource._id)}>
+                        <AiOutlineDelete />
+                      </IconButton>
+                    </ActionButtons>
+                  </Td>
+                </Tr>
+              ))
+            ) : (
+              <Tr>
+                <Td colSpan="8">
+                  <NoData>No resources found</NoData>
+                </Td>
+              </Tr>
+            )}
+          </Tbody>
+        </Table>
+      </TableContainer>
 
       {/* Add/Edit Resource Modal */}
       {showModal && (
         <ModalOverlay>
           <ModalContent>
             <CloseButton onClick={closeModal}>&times;</CloseButton>
-            <h3>{isEditMode ? 'Edit Resource' : 'Add Resource'}</h3>
+            <ModalTitle>{isEditMode ? 'Edit Resource' : 'Add Resource'}</ModalTitle>
             <div>
-              <label>Name:</label>
+              <Label>Name:</Label>
               <Input
                 type="text"
                 name="name"
@@ -327,7 +535,7 @@ const ResourceDashboard = () => {
               />
             </div>
             <div>
-              <label>Type:</label>
+              <Label>Type:</Label>
               <Input
                 type="text"
                 name="type"
@@ -336,7 +544,7 @@ const ResourceDashboard = () => {
               />
             </div>
             <div>
-              <label>Description:</label>
+              <Label>Description:</Label>
               <Input
                 type="text"
                 name="description"
@@ -345,7 +553,7 @@ const ResourceDashboard = () => {
               />
             </div>
             <div>
-              <label>Unit Cost:</label>
+              <Label>Unit Cost:</Label>
               <Input
                 type="number"
                 name="unitCost"
@@ -354,7 +562,7 @@ const ResourceDashboard = () => {
               />
             </div>
             <div>
-              <label>Unit Time:</label>
+              <Label>Unit Time:</Label>
               <Input
                 type="number"
                 name="unitTime"
@@ -363,7 +571,7 @@ const ResourceDashboard = () => {
               />
             </div>
             <div>
-              <label>Unit:</label>
+              <Label>Unit:</Label>
               <Input
                 type="text"
                 name="unit"
@@ -372,7 +580,7 @@ const ResourceDashboard = () => {
               />
             </div>
             <div>
-              <label>Supplier:</label>
+              <Label>Supplier:</Label>
               <Select
                 name="supplierId"
                 value={formData.supplierId}
@@ -386,9 +594,9 @@ const ResourceDashboard = () => {
                 ))}
               </Select>
             </div>
-            <Button onClick={isEditMode ? updateResource : addResource}>
+            <SaveButton onClick={isEditMode ? updateResource : addResource}>
               {isEditMode ? 'Update Resource' : 'Add Resource'}
-            </Button>
+            </SaveButton>
           </ModalContent>
         </ModalOverlay>
       )}

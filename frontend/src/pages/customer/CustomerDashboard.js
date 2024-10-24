@@ -1,44 +1,135 @@
+// src/pages/CustomerDashboard.js
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import { FiSearch } from "react-icons/fi";
+import { AiOutlinePlus, AiOutlineEdit, AiOutlineDelete, AiOutlineEye } from "react-icons/ai";
 
 // Styled Components
 const Container = styled.div`
-  padding: 20px;
+  padding: 40px 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+`;
+
+const Title = styled.h1`
+  color: #e30202;
+  text-align: center;
+  margin-bottom: 40px;
+`;
+
+const ActionBar = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+`;
+
+const SearchContainer = styled.div`
+  position: relative;
+  width: 300px;
+`;
+
+const SearchIcon = styled(FiSearch)`
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  color: #aaa;
+`;
+
+const SearchBar = styled.input`
+  padding: 10px 10px 10px 40px;
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 50px;
+  outline: none;
+  transition: border 0.3s;
+
+  &:focus {
+    border-color: #ff5757;
+  }
+`;
+
+const AddButton = styled.button`
+  background-color: #ff5757;
+  color: #fff7eb;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #e04e4e;
+  }
+`;
+
+const PlusIcon = styled(AiOutlinePlus)`
+  margin-right: 8px;
+  font-size: 20px;
 `;
 
 const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
+  background-color: #fff7eb;
+  border-radius: 10px;
+  overflow: hidden;
+`;
+
+const Thead = styled.thead`
+  background-color: #ff5757;
+  color: white;
 `;
 
 const Th = styled.th`
-  background-color: #ff5757;
-  color: white;
-  padding: 10px;
+  padding: 15px;
   text-align: left;
+  font-size: 16px;
+`;
+
+const Tbody = styled.tbody`
+  color: #333;
+`;
+
+const Tr = styled.tr`
+  border-bottom: 1px solid #ddd;
+
+  &:nth-child(even) {
+    background-color: #ffecec;
+  }
+
+  &:hover {
+    background-color: #ffdada;
+  }
 `;
 
 const Td = styled.td`
-  padding: 10px;
-  border: 1px solid #ddd;
+  padding: 15px;
+  vertical-align: middle;
+  font-size: 15px;
 `;
 
-const Button = styled.button`
-  background-color: #ff5757;
-  color: #fff7eb;
-  padding: 10px;
+const ActionButtons = styled.div`
+  display: flex;
+  gap: 10px;
+`;
+
+const IconButton = styled.button`
+  background-color: transparent;
+  color: #ff5757;
   border: none;
-  border-radius: 5px;
   cursor: pointer;
-  margin: 5px;
-`;
+  font-size: 20px;
+  transition: color 0.3s;
 
-const SearchBar = styled.input`
-  padding: 10px;
-  width: 300px;
-  margin-bottom: 20px;
+  &:hover {
+    color: #e04e4e;
+  }
 `;
 
 const ModalOverlay = styled.div`
@@ -56,31 +147,76 @@ const ModalOverlay = styled.div`
 
 const ModalContent = styled.div`
   background-color: #fff7eb;
-  padding: 20px;
+  padding: 30px;
   border-radius: 10px;
-  width: 400px;
+  width: 500px;
+  position: relative;
+`;
+
+const ModalTitle = styled.h3`
+  margin-bottom: 20px;
+  color: #e30202;
+`;
+
+const Label = styled.label`
+  font-weight: bold;
+  margin-top: 10px;
+  display: block;
+  color: #333;
 `;
 
 const Input = styled.input`
-  padding: 8px;
-  margin: 10px 0;
+  padding: 10px;
+  margin: 5px 0 15px 0;
   width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  outline: none;
+  transition: border 0.3s;
+
+  &:focus {
+    border-color: #ff5757;
+  }
+`;
+
+const SaveButton = styled.button`
+  background-color: #ff5757;
+  color: #fff7eb;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  font-size: 16px;
+  margin-top: 10px;
+  width: 100%;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: #e04e4e;
+  }
 `;
 
 const CloseButton = styled.button`
   background-color: transparent;
   color: #ff5757;
   border: none;
-  font-size: 24px;
+  font-size: 28px;
   position: absolute;
   top: 10px;
-  right: 10px;
+  right: 15px;
   cursor: pointer;
+`;
+
+const NoData = styled.p`
+  text-align: center;
+  color: #888;
+  padding: 20px;
+  font-size: 16px;
 `;
 
 // Customer Dashboard Component
 const CustomerDashboard = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
   const [filteredCustomers, setFilteredCustomers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -184,65 +320,76 @@ const CustomerDashboard = () => {
 
   // Delete a customer
   const deleteCustomer = async (customerId) => {
-    try {
-      await axios.delete(`${API_BASE_URL}/api/customers/${customerId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      fetchCustomers();
-    } catch (err) {
-      console.error("Error deleting customer:", err);
+    if (window.confirm("Are you sure you want to delete this customer?")) {
+      try {
+        await axios.delete(`${API_BASE_URL}/api/customers/${customerId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        fetchCustomers();
+      } catch (err) {
+        console.error("Error deleting customer:", err);
+      }
     }
   };
 
   return (
     <Container>
-      <h1>Customers Dashboard</h1>
-      <Button onClick={() => handleModal(false)}>Add Customer</Button>
-      <SearchBar
-        type="text"
-        placeholder="Search customers by name"
-        value={searchTerm}
-        onChange={handleSearch}
-      />
+      <Title>Customers Dashboard</Title>
+      <ActionBar>
+        <SearchContainer>
+          <SearchIcon />
+          <SearchBar
+            type="text"
+            placeholder="Search customers by name"
+            value={searchTerm}
+            onChange={handleSearch}
+          />
+        </SearchContainer>
+        <AddButton onClick={() => handleModal(false)}>
+          <PlusIcon /> Add Customer
+        </AddButton>
+      </ActionBar>
       <Table>
-        <thead>
+        <Thead>
           <tr>
             <Th>Name</Th>
             <Th>Contact Info</Th>
             <Th>Actions</Th>
           </tr>
-        </thead>
-        <tbody>
+        </Thead>
+        <Tbody>
           {filteredCustomers.length > 0 ? (
             filteredCustomers.map((customer) => (
-              <tr key={customer._id}>
+              <Tr key={customer._id}>
                 <Td>{customer.name}</Td>
                 <Td>{customer.contactInfo}</Td>
                 <Td>
-                  <Button onClick={() => handleModal(true, customer)}>
-                    Edit
-                  </Button>
-                  <Button onClick={() => deleteCustomer(customer._id)}>
-                    Delete
-                  </Button>
-                  <Button
-                    onClick={() => navigate(`/customers/${customer._id}`)}
-                  >
-                    {" "}
-                    {/* Redirect to Customer Details */}
-                    View
-                  </Button>
+                  <ActionButtons>
+                    <IconButton onClick={() => handleModal(true, customer)}>
+                      <AiOutlineEdit />
+                    </IconButton>
+                    <IconButton onClick={() => deleteCustomer(customer._id)}>
+                      <AiOutlineDelete />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => navigate(`/customers/${customer._id}`)}
+                    >
+                      <AiOutlineEye />
+                    </IconButton>
+                  </ActionButtons>
                 </Td>
-              </tr>
+              </Tr>
             ))
           ) : (
-            <tr>
-              <Td colSpan="3">No customers found</Td>
-            </tr>
+            <Tr>
+              <Td colSpan="3">
+                <NoData>No customers found</NoData>
+              </Td>
+            </Tr>
           )}
-        </tbody>
+        </Tbody>
       </Table>
 
       {/* Add/Edit Customer Modal */}
@@ -250,9 +397,9 @@ const CustomerDashboard = () => {
         <ModalOverlay>
           <ModalContent>
             <CloseButton onClick={closeModal}>&times;</CloseButton>
-            <h3>{isEditMode ? "Edit Customer" : "Add Customer"}</h3>
+            <ModalTitle>{isEditMode ? "Edit Customer" : "Add Customer"}</ModalTitle>
             <div>
-              <label>Name:</label>
+              <Label>Name:</Label>
               <Input
                 type="text"
                 name="name"
@@ -261,7 +408,7 @@ const CustomerDashboard = () => {
               />
             </div>
             <div>
-              <label>Contact Info:</label>
+              <Label>Contact Info:</Label>
               <Input
                 type="text"
                 name="contactInfo"
@@ -269,9 +416,9 @@ const CustomerDashboard = () => {
                 onChange={handleChange}
               />
             </div>
-            <Button onClick={isEditMode ? updateCustomer : addCustomer}>
+            <SaveButton onClick={isEditMode ? updateCustomer : addCustomer}>
               {isEditMode ? "Update Customer" : "Add Customer"}
-            </Button>
+            </SaveButton>
           </ModalContent>
         </ModalOverlay>
       )}
