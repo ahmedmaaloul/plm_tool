@@ -2,17 +2,159 @@ const Invoice = require('../models/Invoice');
 const Project = require('../models/Project');
 const Customer = require('../models/Customer');
 const AuditLog = require('../models/AuditLog');
+const PDFDocument = require('pdfkit');
+const path = require('path');
+
+/**
+ * Generate Invoice PDF and return it as a Buffer
+ */
+const generateInvoicePDF = async (invoice) => {
+  // Fetch the project and customer details
+  const project = await Project.findById(invoice.project)
+    .populate({
+      path: 'reference',
+      populate: {
+        path: 'bom',
+        populate: [
+          { path: 'bomResources', populate: { path: 'resource' } },
+          { path: 'manufacturingProcesses', populate: { path: 'resource' } },
+        ],
+      },
+    });
+
+  const customer = await Customer.findById(invoice.customer);
+
+  // Ensure project, customer, and BOM exist
+  if (!project || !customer || !project.reference || !project.reference.bom) {
+    throw new Error('Project, Customer, or BOM not found');
+  }
+
+  // Sanitize the project title and customer name for the filename
+  const sanitizedProjectTitle = project.title.replace(/[<>:"\/\\|?*\x00-\x1F]/g, '').replace(/\s+/g, '_');
+  const sanitizedCustomerName = customer.name.replace(/[<>:"\/\\|?*\x00-\x1F]/g, '').replace(/\s+/g, '_');
+
+  // Get the current date and time
+  const date = new Date();
+  const pad = (num) => String(num).padStart(2, '0');
+  const formattedDate = `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+
+  // Construct the filename using the date and time
+  const filename = `${sanitizedProjectTitle}-${sanitizedCustomerName}-${formattedDate}.pdf`;
+
+  // Create a new PDF document
+  const doc = new PDFDocument({ size: 'A4', margin: 50 });
+
+  // Collect the PDF data into a buffer
+  const buffers = [];
+  doc.on('data', (data) => buffers.push(data));
+
+  // Return a promise that resolves when the PDF is generated
+  return new Promise((resolve, reject) => {
+    doc.on('end', () => {
+      const pdfData = Buffer.concat(buffers);
+      resolve({ pdfData, filename });
+    });
+
+    // ----- Start of PDF Content -----
+
+    // Header with company information
+    doc
+      // .image('path/to/company/logo.png', 50, 45, { width: 50 }) // Uncomment if you have a logo
+      .fillColor('#444444')
+      .fontSize(20)
+      .text('Bena', 110, 57)
+      .fontSize(10)
+      .text('12 Av. Léonard de Vinci', 200, 65, { align: 'right' })
+      .text('Courbevoie, Ile-de-France, 92400', 200, 80, { align: 'right' })
+      .moveDown();
+
+    // Invoice Title
+    doc
+      .fontSize(20)
+      .text('INVOICE', { align: 'center' })
+      .moveDown();
+
+    // Invoice Details
+    const invoiceDetailsTop = 150;
+    doc
+      .fontSize(12)
+      .text(`Invoice ID: ${invoice._id}`, 50, invoiceDetailsTop)
+      .text(`Invoice Date: ${date.toLocaleDateString()}`, 50, invoiceDetailsTop + 15)
+      .text(`Total Amount: $${project.reference.bom.totalCost.toFixed(2)}`, 50, invoiceDetailsTop + 30)
+      .text(`Customer Name: ${customer.name}`, 300, invoiceDetailsTop)
+      .text(`Contact Info: ${customer.contactInfo}`, 300, invoiceDetailsTop + 15);
+
+    // Table Headers
+    const itemsTableTop = 220;
+    doc
+      .fontSize(12)
+      .text('Item', 50, itemsTableTop)
+      .text('Quantity', 200, itemsTableTop)
+      .text('Unit Cost', 280, itemsTableTop, { width: 90, align: 'right' })
+      .text('Line Total', 370, itemsTableTop, { width: 90, align: 'right' });
+
+    // Draw table line
+    doc
+      .strokeColor('#aaaaaa')
+      .lineWidth(1)
+      .moveTo(50, itemsTableTop + 15)
+      .lineTo(550, itemsTableTop + 15)
+      .stroke();
+
+    // Table Content
+    let position = itemsTableTop + 25;
+
+    // BOM Resources
+    project.reference.bom.bomResources.forEach((bomResource) => {
+      doc
+        .fontSize(12)
+        .text(bomResource.resource.name, 50, position)
+        .text(bomResource.quantity, 200, position)
+        .text(`$${bomResource.resource.unitCost.toFixed(2)}`, 280, position, { width: 90, align: 'right' })
+        .text(`$${bomResource.totalCost.toFixed(2)}`, 370, position, { width: 90, align: 'right' });
+      position += 20;
+    });
+
+    // Manufacturing Processes
+    project.reference.bom.manufacturingProcesses.forEach((process) => {
+      doc
+        .fontSize(12)
+        .text(process.resource.name, 50, position)
+        .text(process.quantity, 200, position)
+        .text(`$${process.resource.unitCost.toFixed(2)}`, 280, position, { width: 90, align: 'right' })
+        .text(`$${process.totalCost.toFixed(2)}`, 370, position, { width: 90, align: 'right' });
+      position += 20;
+    });
+
+    // Total Cost
+    doc
+      .fontSize(12)
+      .text('Total', 300, position + 20)
+      .text(`$${project.reference.bom.totalCost.toFixed(2)}`, 370, position + 20, { width: 90, align: 'right' });
+
+    // Footer
+    doc
+      .fontSize(10)
+      .text('Thank you for your business!', 50, position + 80, { align: 'center', width: 500 });
+
+    // ----- End of PDF Content -----
+
+    // Finalize the PDF file
+    doc.end();
+  });
+};
+
 
 /**
  * Create a new Invoice
  */
 const createInvoice = async (req, res) => {
   try {
-    const { filename, project, customer } = req.body;
+    const { project, customer } = req.body;
 
     // Validate required fields
-    if (!filename || !project || !customer) {
-      return res.status(400).json({ error: 'Filename, project ID, and customer ID are required.' });
+    if (!project || !customer) {
+      return res.status(400).json({ error: 'Project ID and Customer ID are required.' });
     }
 
     // Check if Project exists
@@ -28,26 +170,25 @@ const createInvoice = async (req, res) => {
     }
 
     // Create the Invoice
-    const invoice = new Invoice({
-      filename,
-      project,
-      customer,
-    });
-
+    const invoice = new Invoice({ project, customer });
     await invoice.save();
 
-    // Add Invoice to Project's invoices array
+    // Generate PDF and save the data and filename
+    const { pdfData, filename } = await generateInvoicePDF(invoice);
+    invoice.filename = filename; // Store the filename
+    invoice.data = pdfData;      // Store the PDF data
+    await invoice.save();
+
+    // Update related documents
     projectDoc.invoices.push(invoice._id);
     await projectDoc.save();
-
-    // Add Invoice to Customer's invoices array
     customerDoc.invoices.push(invoice._id);
     await customerDoc.save();
 
     // Create AuditLog
     const auditLog = new AuditLog({
       user: req.user.userId,
-      action: `Created invoice '${filename}' for customer '${customerDoc.name}' in project '${projectDoc.title}'.`,
+      action: `Created invoice for customer '${customerDoc.name}' in project '${projectDoc.title}'.`,
     });
     await auditLog.save();
 
@@ -59,8 +200,28 @@ const createInvoice = async (req, res) => {
 };
 
 /**
+ * Download an Invoice PDF
+ */
+const downloadInvoice = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const invoice = await Invoice.findById(id);
+    if (!invoice || !invoice.data) {
+      return res.status(404).json({ error: 'Invoice not found or file not generated.' });
+    }
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${invoice.filename}"`);
+    res.send(invoice.data);
+  } catch (err) {
+    console.error('Error downloading invoice:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/**
  * Get all Invoices
- * No access control required beyond authentication
  */
 const getInvoices = async (req, res) => {
   try {
@@ -77,7 +238,6 @@ const getInvoices = async (req, res) => {
 
 /**
  * Get an Invoice by ID
- * No access control required beyond authentication
  */
 const getInvoiceById = async (req, res) => {
   try {
@@ -111,10 +271,6 @@ const updateInvoice = async (req, res) => {
       return res.status(404).json({ error: 'Invoice not found.' });
     }
 
-    // Keep track of old project and customer
-    const oldProjectId = invoice.project.toString();
-    const oldCustomerId = invoice.customer.toString();
-
     // Update fields if provided
     if (filename) invoice.filename = filename;
     if (project) invoice.project = project;
@@ -122,50 +278,10 @@ const updateInvoice = async (req, res) => {
 
     await invoice.save();
 
-    // If project has changed, update Project's invoices arrays
-    if (project && project !== oldProjectId) {
-      const oldProject = await Project.findById(oldProjectId);
-      const newProject = await Project.findById(project);
-
-      if (!newProject) {
-        return res.status(404).json({ error: 'New project not found.' });
-      }
-
-      // Remove from old project
-      if (oldProject) {
-        oldProject.invoices.pull(invoice._id);
-        await oldProject.save();
-      }
-
-      // Add to new project
-      newProject.invoices.push(invoice._id);
-      await newProject.save();
-    }
-
-    // If customer has changed, update Customer's invoices arrays
-    if (customer && customer !== oldCustomerId) {
-      const oldCustomer = await Customer.findById(oldCustomerId);
-      const newCustomer = await Customer.findById(customer);
-
-      if (!newCustomer) {
-        return res.status(404).json({ error: 'New customer not found.' });
-      }
-
-      // Remove from old customer
-      if (oldCustomer) {
-        oldCustomer.invoices.pull(invoice._id);
-        await oldCustomer.save();
-      }
-
-      // Add to new customer
-      newCustomer.invoices.push(invoice._id);
-      await newCustomer.save();
-    }
-
     // Create AuditLog
     const auditLog = new AuditLog({
       user: req.user.userId,
-      action: `Updated invoice '${invoice.filename}' (ID: ${invoice._id}).`,
+      action: `Updated invoice (ID: ${invoice._id}).`,
     });
     await auditLog.save();
 
@@ -189,30 +305,21 @@ const deleteInvoice = async (req, res) => {
     }
 
     const project = await Project.findById(invoice.project);
-    if (!project) {
-      return res.status(404).json({ error: 'Associated project not found.' });
-    }
-
     const customer = await Customer.findById(invoice.customer);
-    if (!customer) {
-      return res.status(404).json({ error: 'Associated customer not found.' });
-    }
 
-    // Remove Invoice from Project's invoices array
+    // Update related documents
     project.invoices.pull(invoice._id);
     await project.save();
-
-    // Remove Invoice from Customer's invoices array
     customer.invoices.pull(invoice._id);
     await customer.save();
 
-    // Remove the Invoice
+    // Delete the Invoice
     await invoice.deleteOne();
 
     // Create AuditLog
     const auditLog = new AuditLog({
       user: req.user.userId,
-      action: `Deleted invoice '${invoice.filename}' from customer '${customer.name}' in project '${project.title}'.`,
+      action: `Deleted invoice (ID: ${invoice._id}).`,
     });
     await auditLog.save();
 
@@ -229,4 +336,5 @@ module.exports = {
   getInvoiceById,
   updateInvoice,
   deleteInvoice,
+  downloadInvoice,
 };

@@ -108,12 +108,6 @@ const SectionTitle = styled.h3`
   padding-bottom: 5px;
 `;
 
-
-// Styled Components (same as before)
-
-// ... (Your styled components here)
-
-// CustomerDetails Component
 const CustomerDetails = () => {
   const { id } = useParams();
   const [customer, setCustomer] = useState(null);
@@ -134,7 +128,8 @@ const CustomerDetails = () => {
   // State for collapsing needs
   const [collapsedNeeds, setCollapsedNeeds] = useState({});
 
-  const API_BASE_URL = 'http://localhost:5000'; // Adjust as necessary
+  // API Base URL
+  const API_BASE_URL = 'http://localhost:5000'; 
 
   useEffect(() => {
     fetchCustomerDetails();
@@ -151,6 +146,54 @@ const CustomerDetails = () => {
       setCustomer(response.data.customer);
     } catch (err) {
       console.error('Error fetching customer details:', err);
+    }
+  };
+
+  // Create an invoice for the customer
+  const createInvoice = async () => {
+    try {
+      console.log("hello")
+      const response = await axios.post(
+        `${API_BASE_URL}/api/invoices`,
+        {
+          customer: customer._id,
+          project: customer.project._id,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
+      console.log(response)
+      // Update the customer's invoices list
+      setCustomer({
+        ...customer,
+        invoices: [...customer.invoices, response.data.invoice],
+      });
+    } catch (err) {
+      console.error('Error creating invoice:', err);
+    }
+  };
+
+  // Download an invoice
+  const downloadInvoice = async (invoiceId, filename) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/invoices/download/${invoiceId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      console.error('Error downloading invoice:', err);
     }
   };
 
@@ -246,7 +289,6 @@ const CustomerDetails = () => {
   const saveRequirement = async () => {
     try {
       if (isRequirementEditMode) {
-        // Update requirement
         await axios.put(
           `${API_BASE_URL}/api/requirements/${currentRequirement._id}`,
           { ...requirementFormData },
@@ -257,7 +299,6 @@ const CustomerDetails = () => {
           }
         );
       } else {
-        // Create requirement
         await axios.post(
           `${API_BASE_URL}/api/requirements`,
           { ...requirementFormData, customerNeed: currentCustomerNeedId },
@@ -327,7 +368,6 @@ const CustomerDetails = () => {
                         </CollapseButton>
                       </Td>
                     </tr>
-                    {/* Display requirements for each need if not collapsed */}
                     {!collapsedNeeds[need._id] && (
                       <tr>
                         <Td colSpan="2">
@@ -343,7 +383,6 @@ const CustomerDetails = () => {
                               </tr>
                             </thead>
                             <tbody>
-                                {console.log(need)}
                               {need.requirements?.length > 0 ? (
                                 need.requirements.map((requirement) => (
                                   <tr key={requirement._id}>
@@ -383,6 +422,7 @@ const CustomerDetails = () => {
           </Table>
 
           <SectionTitle>Invoices</SectionTitle>
+          {/* <Button onClick={createInvoice}>Create Invoice</Button> */}
           <Table>
             <thead>
               <tr>
@@ -396,7 +436,7 @@ const CustomerDetails = () => {
                   <tr key={invoice._id}>
                     <Td>{invoice.filename}</Td>
                     <Td>
-                      <Button onClick={() => console.log(`Download ${invoice.filename}`)}>
+                      <Button onClick={() => downloadInvoice(invoice._id, `Invoice_${invoice._id}.pdf`)}>
                         Download
                       </Button>
                     </Td>

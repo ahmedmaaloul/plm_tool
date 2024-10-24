@@ -146,6 +146,11 @@ const ProjectDetails = () => {
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
+  // New state variables for customer selection
+  const [showSelectCustomerModal, setShowSelectCustomerModal] = useState(false);
+  const [customers, setCustomers] = useState([]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState('');
+
   const navigate = useNavigate();
 
   const API_BASE_URL = 'http://localhost:5000';
@@ -168,7 +173,6 @@ const ProjectDetails = () => {
 
   useEffect(() => {
     const fetchBOM = async () => {
-      console.log(projectDetails?.reference?.bom)
       if (projectDetails?.reference?.bom) {
         try {
           const response = await axios.get(`${API_BASE_URL}/api/bom/${projectDetails.reference.bom}`, {
@@ -178,7 +182,6 @@ const ProjectDetails = () => {
           });
           setBOM(response.data.bom);
         } catch (err) {
-          console.log(err)
           setBOM(null);
         }
       }
@@ -374,6 +377,96 @@ const ProjectDetails = () => {
     }
   };
 
+  // Fetch customers when opening the modal
+  const fetchCustomers = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/customers`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      setCustomers(response.data.customers);
+    } catch (err) {
+      setErrorMessage('Error fetching customers.');
+      setShowErrorModal(true);
+    }
+  };
+
+  const openSelectCustomerModal = async () => {
+    await fetchCustomers();
+    setShowSelectCustomerModal(true);
+  };
+
+  const handleCreateInvoice = () => {
+    if (!selectedCustomerId) {
+      setErrorMessage('Please select a customer.');
+      setShowErrorModal(true);
+      return;
+    }
+    createInvoice(selectedCustomerId);
+    setShowSelectCustomerModal(false);
+  };
+
+  const createInvoice = async (customerId) => {
+    try {
+      const response = await axios.post(
+        `${API_BASE_URL}/api/invoices`,
+        {
+          project: projectId,
+          customer: customerId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        }
+      );
+      // Update invoices list
+      setInvoices([...invoices, response.data.invoice]);
+    } catch (err) {
+      console.log(err);
+      setErrorMessage('Error creating invoice.');
+      setShowErrorModal(true);
+    }
+  };
+
+  const downloadInvoice = async (invoiceId, filename) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/invoices/download/${invoiceId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err) {
+      setErrorMessage('Error downloading invoice.');
+      setShowErrorModal(true);
+    }
+  };
+
+  // New function to delete an invoice
+  const deleteInvoice = async (invoiceId) => {
+    try {
+      await axios.delete(`${API_BASE_URL}/api/invoices/${invoiceId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      // Remove the deleted invoice from the state
+      setInvoices(invoices.filter((invoice) => invoice._id !== invoiceId));
+    } catch (err) {
+      setErrorMessage('Error deleting invoice.');
+      setShowErrorModal(true);
+    }
+  };
+
   const filteredTasks = tasks.filter((task) =>
     selectedRoleFilter ? task.role && task.role._id === selectedRoleFilter : true
   );
@@ -424,17 +517,19 @@ const ProjectDetails = () => {
               {invoices.map((invoice) => (
                 <li key={invoice._id}>
                   {invoice.filename}{' '}
-                  <Button onClick={() => navigate(`/invoices/${invoice._id}`)}>View Invoice</Button>
+                  <Button onClick={() => downloadInvoice(invoice._id, invoice.filename)}>
+                    Download
+                  </Button>
+                  <Button onClick={() => deleteInvoice(invoice._id)}>Delete</Button>
                 </li>
               ))}
             </ul>
-            <Button onClick={() => navigate(`/projects/${projectId}/invoices`)}>View All Invoices</Button>
           </>
         ) : (
           <p>No invoices available.</p>
         )}
         {bom ? (
-          <Button onClick={() => navigate(`/projects/${projectId}/create-invoice`)}>Create Invoice</Button>
+          <Button onClick={openSelectCustomerModal}>Create Invoice</Button>
         ) : (
           <p>You need to create a BOM before generating an invoice.</p>
         )}
@@ -571,6 +666,31 @@ const ProjectDetails = () => {
               />
             </div>
             <Button onClick={addTask}>Add Task</Button>
+          </ModalContent>
+        </ModalOverlay>
+      )}
+
+      {/* Select Customer Modal */}
+      {showSelectCustomerModal && (
+        <ModalOverlay>
+          <ModalContent>
+            <CloseButton onClick={() => setShowSelectCustomerModal(false)}>&times;</CloseButton>
+            <h3>Select Customer</h3>
+            <div>
+              <Label>Customer:</Label>
+              <Select
+                value={selectedCustomerId}
+                onChange={(e) => setSelectedCustomerId(e.target.value)}
+              >
+                <option value="">Select Customer</option>
+                {customers.map((customer) => (
+                  <option key={customer._id} value={customer._id}>
+                    {customer.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <Button onClick={handleCreateInvoice}>Create Invoice</Button>
           </ModalContent>
         </ModalOverlay>
       )}
