@@ -91,6 +91,14 @@ const Navbar = () => {
               </NavbarItem>
             )}
 
+            {
+              hasAccess("Reference") && (
+                <NavbarItem>
+                  <StyledLink to="/references">References</StyledLink>
+                </NavbarItem>
+              )
+            }
+
             {hasAccess("CustomersAndRequirements") && (
               <NavbarItem>
                 <StyledLink to="/customers">Customers</StyledLink>

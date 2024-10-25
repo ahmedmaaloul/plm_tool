@@ -10,7 +10,8 @@ import ProjectsList from './pages/project/ProjectsList';
 import ProjectDetails from './pages/project/ProjectDetails';
 import CreateProject from './pages/project/CreateProject';
 import EditProject from './pages/project/EditProject';
-//import ProductsPage from './pages/ProductsPage';
+import ProductsPage from './pages/ProductsPage';
+import ReferenceDashboard from './pages/Reference';
 //import CustomersPage from './pages/CustomersPage';
 //import BOMsPage from './pages/BOMsPage';
 import UserTasks from './pages/UserTasks';
@@ -93,14 +94,23 @@ function App() {
         
 
         {/* Products Route - Requires 'Product' access right */}
-        {/* <Route
+        <Route
           path="/products"
           element={
             <ProtectedRoute accessRight="Product">
               <ProductsPage />
             </ProtectedRoute>
           }
-        /> */}
+        />
+
+        <Route
+          path="/references"
+          element={
+            <ProtectedRoute accessRight="Reference">
+              <ReferenceDashboard/>
+            </ProtectedRoute>
+          }
+        />
 
         {/* Customers Route - Requires 'CustomersAndRequirements' access right */}
         {/* <Route
