@@ -15,9 +15,9 @@ router.get('/', authMiddleware, referenceController.getReferences);
 router.get('/:id', authMiddleware, referenceController.getReferenceById);
 
 // Update a Reference
-router.put('/:id', authMiddleware,setProjectIdFromReference, roleMiddleware('updateReference'), referenceController.updateReference);
+router.put('/:id', authMiddleware, roleMiddleware('updateReference'), referenceController.updateReference);
 
 // Delete a Reference
-router.delete('/:id', authMiddleware,setProjectIdFromReference, roleMiddleware('deleteReference'), referenceController.deleteReference);
+router.delete('/:id', authMiddleware, roleMiddleware('deleteReference'), referenceController.deleteReference);
 
 module.exports = router;

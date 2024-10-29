@@ -113,13 +113,20 @@ const getReferenceById = async (req, res) => {
 
 // Update a Reference
 const updateReference = async (req, res) => {
+  console.log("HERE")
   try {
     const { code, description, productId, projectId, bomId } = req.body;
+
+    console.log("PRODUCT: ", productId)
+
+    console.log("BODY: ", req.body)
 
     const reference = await Reference.findById(req.params.id);
     if (!reference) {
       return res.status(404).json({ error: 'Reference not found' });
     }
+
+    console.log("REF: ", reference)
 
     if (code && code !== reference.code) {
       const existingReference = await Reference.findOne({ code });

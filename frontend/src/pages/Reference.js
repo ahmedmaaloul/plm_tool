@@ -194,7 +194,11 @@ const ReferenceDashboard = () => {
     try {
       await axios.put(
         `${API_BASE_URL}/api/references/${currentReference._id}`,
-        { ...formData, product: formData.product_id },
+        { 
+          code: formData.code,
+          description: formData.description,
+          productId: formData.product_id
+         },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -240,6 +244,7 @@ const ReferenceDashboard = () => {
             <Th>Product Id</Th>
             <Th>Product Name</Th>
             <Th>Actions</Th>
+            
           </tr>
         </thead>
         <tbody>
