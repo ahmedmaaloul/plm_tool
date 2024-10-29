@@ -1,8 +1,8 @@
-const Reference = require('../models/Reference');
-const Product = require('../models/Product');
-const Project = require('../models/Project');
-const BOM = require('../models/BOM');
-const AuditLog = require('../models/AuditLog');
+const Reference = require("../models/Reference");
+const Product = require("../models/Product");
+const Project = require("../models/Project");
+const BOM = require("../models/BOM");
+const AuditLog = require("../models/AuditLog");
 
 // Create a new Reference
 const createReference = async (req, res) => {
@@ -10,24 +10,24 @@ const createReference = async (req, res) => {
     const { code, description, productId, projectId, bomId } = req.body;
 
     if (!code || !productId) {
-      return res.status(400).json({ error: 'Code and productId are required' });
+      return res.status(400).json({ error: "Code and productId are required" });
     }
 
     const existingReference = await Reference.findOne({ code });
     if (existingReference) {
-      return res.status(400).json({ error: 'Reference code already exists' });
+      return res.status(400).json({ error: "Reference code already exists" });
     }
 
     const product = await Product.findById(productId);
     if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
+      return res.status(404).json({ error: "Product not found" });
     }
 
     let project = null;
     if (projectId) {
       project = await Project.findById(projectId);
       if (!project) {
-        return res.status(404).json({ error: 'Project not found' });
+        return res.status(404).json({ error: "Project not found" });
       }
     }
 
@@ -35,7 +35,7 @@ const createReference = async (req, res) => {
     if (bomId) {
       bom = await BOM.findById(bomId);
       if (!bom) {
-        return res.status(404).json({ error: 'BOM not found' });
+        return res.status(404).json({ error: "BOM not found" });
       }
     }
 
@@ -58,10 +58,12 @@ const createReference = async (req, res) => {
     });
     await auditLog.save();
 
-    res.status(201).json({ message: 'Reference created successfully', reference });
+    res
+      .status(201)
+      .json({ message: "Reference created successfully", reference });
   } catch (err) {
-    console.error('Error creating reference:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error creating reference:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -75,17 +77,17 @@ const getReferences = async (req, res) => {
     if (projectId) filter.project = projectId;
 
     const references = await Reference.find(filter)
-      .populate('product', 'name')
-      .populate('project', 'title')
-      .populate('bom', 'name')
-      .populate('cadFiles', 'filename')
-      .populate('documents', 'filename')
-      .populate('simulations', 'name');
+      .populate("product", "name")
+      .populate("project", "title")
+      .populate("bom", "name")
+      .populate("cadFiles", "filename")
+      .populate("documents", "filename")
+      .populate("simulations", "name");
 
     res.json({ references });
   } catch (err) {
-    console.error('Error fetching references:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching references:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -93,45 +95,48 @@ const getReferences = async (req, res) => {
 const getReferenceById = async (req, res) => {
   try {
     const reference = await Reference.findById(req.params.id)
-      .populate('product', 'name')
-      .populate('project', 'title')
-      .populate('bom', 'name')
-      .populate('cadFiles', 'filename')
-      .populate('documents', 'filename')
-      .populate('simulations', 'name');
+      .populate("product", "name")
+      .populate("project", "title")
+      .populate("bom", "name")
+      .populate("cadFiles", "filename")
+      .populate("documents", "filename")
+      .populate("simulations", "name");
 
     if (!reference) {
-      return res.status(404).json({ error: 'Reference not found' });
+      return res.status(404).json({ error: "Reference not found" });
     }
 
     res.json({ reference });
   } catch (err) {
-    console.error('Error fetching reference:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching reference:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
 // Update a Reference
 const updateReference = async (req, res) => {
-  console.log("HERE")
+  console.log("HERE");
   try {
     const { code, description, productId, projectId, bomId } = req.body;
 
-    console.log("PRODUCT: ", productId)
+    console.log("PRODUCT: ", productId);
 
-    console.log("BODY: ", req.body)
+    console.log("BODY: ", req.body);
 
     const reference = await Reference.findById(req.params.id);
     if (!reference) {
-      return res.status(404).json({ error: 'Reference not found' });
+      return res.status(404).json({ error: "Reference not found" });
     }
 
-    console.log("REF: ", reference)
+    console.log("REF: ", reference);
 
     if (code && code !== reference.code) {
       const existingReference = await Reference.findOne({ code });
-      if (existingReference && existingReference._id.toString() !== reference._id.toString()) {
-        return res.status(400).json({ error: 'Reference code already exists' });
+      if (
+        existingReference &&
+        existingReference._id.toString() !== reference._id.toString()
+      ) {
+        return res.status(400).json({ error: "Reference code already exists" });
       }
       reference.code = code;
     }
@@ -141,7 +146,7 @@ const updateReference = async (req, res) => {
     if (productId && productId !== reference.product.toString()) {
       const newProduct = await Product.findById(productId);
       if (!newProduct) {
-        return res.status(404).json({ error: 'Product not found' });
+        return res.status(404).json({ error: "Product not found" });
       }
 
       const oldProduct = await Product.findById(reference.product);
@@ -159,7 +164,7 @@ const updateReference = async (req, res) => {
     if (projectId && projectId !== reference.project?.toString()) {
       const project = await Project.findById(projectId);
       if (!project) {
-        return res.status(404).json({ error: 'Project not found' });
+        return res.status(404).json({ error: "Project not found" });
       }
       reference.project = projectId;
     }
@@ -167,7 +172,7 @@ const updateReference = async (req, res) => {
     if (bomId && bomId !== reference.bom?.toString()) {
       const bom = await BOM.findById(bomId);
       if (!bom) {
-        return res.status(404).json({ error: 'BOM not found' });
+        return res.status(404).json({ error: "BOM not found" });
       }
       reference.bom = bomId;
     }
@@ -180,20 +185,19 @@ const updateReference = async (req, res) => {
     });
     await auditLog.save();
 
-    res.json({ message: 'Reference updated successfully', reference });
+    res.json({ message: "Reference updated successfully", reference });
   } catch (err) {
-    console.error('Error updating reference:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error updating reference:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
-
 
 // Delete a Reference
 const deleteReference = async (req, res) => {
   try {
     const reference = await Reference.findById(req.params.id);
     if (!reference) {
-      return res.status(404).json({ error: 'Reference not found' });
+      return res.status(404).json({ error: "Reference not found" });
     }
 
     // **Delete associated BOM if it exists**
@@ -201,10 +205,14 @@ const deleteReference = async (req, res) => {
       const bom = await BOM.findById(reference.bom);
       if (bom) {
         // Delete related manufacturing processes and their process resources
-        const manufacturingProcesses = await ManufacturingProcess.find({ bom: bom._id });
+        const manufacturingProcesses = await ManufacturingProcess.find({
+          bom: bom._id,
+        });
         for (const process of manufacturingProcesses) {
           // Delete process resources associated with the manufacturing process
-          await ProcessResource.deleteMany({ manufacturingProcess: process._id });
+          await ProcessResource.deleteMany({
+            manufacturingProcess: process._id,
+          });
           // Delete the manufacturing process
           await process.deleteOne();
         }
@@ -234,10 +242,10 @@ const deleteReference = async (req, res) => {
     });
     await auditLog.save();
 
-    res.json({ message: 'Reference and associated BOM deleted successfully' });
+    res.json({ message: "Reference and associated BOM deleted successfully" });
   } catch (err) {
-    console.error('Error deleting reference:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error deleting reference:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 

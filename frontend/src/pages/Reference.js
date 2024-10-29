@@ -86,14 +86,18 @@ const CloseButton = styled.button`
 
 // Reference Dashboard Component
 const ReferenceDashboard = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const [references, setReferences] = useState([]);
   const [filteredReferences, setFilteredReferences] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [showModal, setShowModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentReference, setCurrentReference] = useState(null);
-  const [formData, setFormData] = useState({ code: "", description: "", product_id: "" });
+  const [formData, setFormData] = useState({
+    code: "",
+    description: "",
+    product_id: "",
+  });
   const [products, setProducts] = useState([]);
 
   const API_BASE_URL = "http://localhost:5000"; // Adjust as necessary
@@ -148,10 +152,10 @@ const ReferenceDashboard = () => {
     setIsEditMode(isEdit);
     if (isEdit && reference) {
       setCurrentReference(reference);
-      setFormData({ 
-        code: reference.code, 
-        description: reference.description, 
-        product_id: reference.product._id 
+      setFormData({
+        code: reference.code,
+        description: reference.description,
+        product_id: reference.product._id,
       });
     } else {
       setFormData({ code: "", description: "", product_id: "" });
@@ -194,11 +198,11 @@ const ReferenceDashboard = () => {
     try {
       await axios.put(
         `${API_BASE_URL}/api/references/${currentReference._id}`,
-        { 
+        {
           code: formData.code,
           description: formData.description,
-          productId: formData.product_id
-         },
+          productId: formData.product_id,
+        },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -244,7 +248,6 @@ const ReferenceDashboard = () => {
             <Th>Product Id</Th>
             <Th>Product Name</Th>
             <Th>Actions</Th>
-            
           </tr>
         </thead>
         <tbody>
@@ -263,7 +266,7 @@ const ReferenceDashboard = () => {
                     Delete
                   </Button>
                   <Button
-                    onClick={() => navigate(`/products/${reference._id}`)}
+                    onClick={() => navigate(`/references/${reference._id}`)}
                   >
                     View
                   </Button>
@@ -279,51 +282,52 @@ const ReferenceDashboard = () => {
       </Table>
 
       {/* Add/Edit Reference Modal */}
-      
+
       {showModal && (
-  <ModalOverlay>
-    <ModalContent>
-      <CloseButton onClick={closeModal}>&times;</CloseButton>
-      <h3>{isEditMode ? "Edit Reference" : "Add Reference"}</h3>
-      <div>
-        <label>Code:</label>
-        <Input
-          type="text"
-          name="code"
-          value={formData.code}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <label>Description:</label>
-        <Input
-          type="text"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <label>Product:</label>
-        <Select
-          value={formData.product_id
-          }
-          onChange={(e) => setFormData({...formData, product_id: e.target.value})}
-        >
-          <option value="">Select a product</option>
-          {products.map((product) => (
-            <option key={product._id} value={product._id}>
-              {product.name}
-            </option>
-          ))}
-        </Select>
-      </div>
-      <Button onClick={isEditMode ? updateReference : addReference}>
-        {isEditMode ? "Update Reference" : "Add Reference"}
-      </Button>
-    </ModalContent>
-  </ModalOverlay>
-)}
+        <ModalOverlay>
+          <ModalContent>
+            <CloseButton onClick={closeModal}>&times;</CloseButton>
+            <h3>{isEditMode ? "Edit Reference" : "Add Reference"}</h3>
+            <div>
+              <label>Code:</label>
+              <Input
+                type="text"
+                name="code"
+                value={formData.code}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label>Description:</label>
+              <Input
+                type="text"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label>Product:</label>
+              <Select
+                value={formData.product_id}
+                onChange={(e) =>
+                  setFormData({ ...formData, product_id: e.target.value })
+                }
+              >
+                <option value="">Select a product</option>
+                {products.map((product) => (
+                  <option key={product._id} value={product._id}>
+                    {product.name}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <Button onClick={isEditMode ? updateReference : addReference}>
+              {isEditMode ? "Update Reference" : "Add Reference"}
+            </Button>
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </Container>
   );
 };

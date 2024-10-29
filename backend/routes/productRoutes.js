@@ -1,11 +1,11 @@
 // routes/productRoutes.js
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
-const roleMiddleware = require('../middleware/roleMiddleware');
-const productController = require('../controllers/productController');
-const Product = require('../models/Product');
+const authMiddleware = require("../middleware/authMiddleware");
+const roleMiddleware = require("../middleware/roleMiddleware");
+const productController = require("../controllers/productController");
+const Product = require("../models/Product");
 
 // Middleware to set projectIds from Product
 async function setProjectIdsFromProduct(req, res, next) {
@@ -18,13 +18,13 @@ async function setProjectIdsFromProduct(req, res, next) {
     }
 
     const product = await Product.findById(productId).populate({
-      path: 'references',
-      select: 'project',
-      populate: { path: 'project', select: '_id' },
+      path: "references",
+      select: "project",
+      populate: { path: "project", select: "_id" },
     });
 
     if (!product) {
-      return res.status(404).json({ error: 'Product not found' });
+      return res.status(404).json({ error: "Product not found" });
     }
 
     // Collect unique projectIds from references
@@ -44,47 +44,43 @@ async function setProjectIdsFromProduct(req, res, next) {
 
     next();
   } catch (err) {
-    console.error('Error in setProjectIdsFromProduct:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error in setProjectIdsFromProduct:", err);
+    res.status(500).json({ error: "Server error" });
   }
 }
 
 // Create a new Product
-router.post(
-  '/',
-  authMiddleware,
-  productController.createProduct
-);
+router.post("/", authMiddleware, productController.createProduct);
 
 // Get all Products
 router.get(
-  '/',
+  "/",
   authMiddleware,
-  roleMiddleware('Product'),
+  roleMiddleware("Product"),
   productController.getProducts
 );
 
 // Get a Product by ID
 router.get(
-  '/:id',
+  "/:id",
   authMiddleware,
-  roleMiddleware('Product'),
+  roleMiddleware("Product"),
   productController.getProductById
 );
 
 // Update a Product
 router.put(
-  '/:id',
+  "/:id",
   authMiddleware,
-  roleMiddleware('Product'),
+  roleMiddleware("Product"),
   productController.updateProduct
 );
 
 // Delete a Product
 router.delete(
-  '/:id',
+  "/:id",
   authMiddleware,
-  roleMiddleware('Product'),
+  roleMiddleware("Product"),
   productController.deleteProduct
 );
 

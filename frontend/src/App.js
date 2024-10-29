@@ -1,29 +1,34 @@
 // src/App.js
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import GlobalStyles from './styles/GlobalStyles';
-import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ProjectsList from './pages/project/ProjectsList';
-import ProjectDetails from './pages/project/ProjectDetails';
-import CreateProject from './pages/project/CreateProject';
-import EditProject from './pages/project/EditProject';
-import ProductsPage from './pages/ProductsPage';
-import ReferenceDashboard from './pages/Reference';
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+} from "react-router-dom";
+import GlobalStyles from "./styles/GlobalStyles";
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import ProjectsList from "./pages/project/ProjectsList";
+import ProjectDetails from "./pages/project/ProjectDetails";
+import CreateProject from "./pages/project/CreateProject";
+import EditProject from "./pages/project/EditProject";
+import ProductsPage from "./pages/ProductsPage";
+import ReferenceDashboard from "./pages/Reference";
 //import CustomersPage from './pages/CustomersPage';
 //import BOMsPage from './pages/BOMsPage';
-import UserTasks from './pages/UserTasks';
-import UnauthorizedPage from './pages/UnauthorizedPage';
-import ProtectedRoute from './components/ProtectedRoute';
-import BOMDetails from './pages/bom/BOMDetails';
-import BOMList from './pages/bom/BOMList';
-import SupplierDashboard from './pages/supplier/SupplierDashboard';
-import ResourceDashboard from './pages/resource/ResourceDashboard';
-import CustomerDashboard from './pages/customer/CustomerDashboard';
-import CustomerDetails from './pages/customer/CustomerDetails';
-
+import UserTasks from "./pages/UserTasks";
+import UnauthorizedPage from "./pages/UnauthorizedPage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import BOMDetails from "./pages/bom/BOMDetails";
+import BOMList from "./pages/bom/BOMList";
+import SupplierDashboard from "./pages/supplier/SupplierDashboard";
+import ResourceDashboard from "./pages/resource/ResourceDashboard";
+import CustomerDashboard from "./pages/customer/CustomerDashboard";
+import CustomerDetails from "./pages/customer/CustomerDetails";
+import ReferenceView from "./pages/ReferenceView";
 
 function App() {
   return (
@@ -46,8 +51,8 @@ function App() {
             </ProtectedRoute>
           }
         />
-         {/* Protected Routes */}
-         <Route
+        {/* Protected Routes */}
+        <Route
           path="/my_tasks"
           element={
             <ProtectedRoute>
@@ -91,7 +96,6 @@ function App() {
             </ProtectedRoute>
           }
         />
-        
 
         {/* Products Route - Requires 'Product' access right */}
         <Route
@@ -107,7 +111,16 @@ function App() {
           path="/references"
           element={
             <ProtectedRoute accessRight="Reference">
-              <ReferenceDashboard/>
+              <ReferenceDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/references/:id"
+          element={
+            <ProtectedRoute>
+              <ReferenceView />
             </ProtectedRoute>
           }
         />
@@ -137,7 +150,7 @@ function App() {
             </ProtectedRoute>
           }
         />
-         <Route
+        <Route
           path="/suppliers"
           element={
             <ProtectedRoute accessRight="BOMAndSuppliers">
@@ -191,7 +204,7 @@ function App() {
 // Component to conditionally render Navbar
 const NavbarWrapper = () => {
   const location = useLocation();
-  const hideNavbarPaths = ['/login', '/register'];
+  const hideNavbarPaths = ["/login", "/register"];
 
   return !hideNavbarPaths.includes(location.pathname) ? <Navbar /> : null;
 };
