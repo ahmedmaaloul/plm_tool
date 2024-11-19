@@ -101,7 +101,12 @@ const ReferenceView = () => {
       });
       // Refresh the document list after submission
       const docResponse = await axios.get(
-        `http://localhost:5000/api/documents/reference/${id}`
+        `http://localhost:5000/api/documents/reference/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
       );
       setDocuments(docResponse.data.documents);
     } catch (error) {

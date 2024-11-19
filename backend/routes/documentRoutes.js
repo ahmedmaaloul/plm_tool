@@ -36,7 +36,6 @@ async function setProjectIdFromReference(req, res, next) {
 router.post(
   "/",
   authMiddleware,
-  roleMiddleware("manageDocuments"),
   documentController.createDocument
 );
 
@@ -44,7 +43,6 @@ router.post(
 router.get(
   "/reference/:referenceId",
   authMiddleware,
-  roleMiddleware("viewDocuments"),
   documentController.getDocumentsByReferenceId
 );
 
@@ -55,7 +53,6 @@ router.get("/:id", authMiddleware, documentController.getDocumentById);
 router.put(
   "/:id",
   authMiddleware,
-  roleMiddleware("manageDocuments"),
   documentController.updateDocument
 );
 
@@ -63,7 +60,6 @@ router.put(
 router.delete(
   "/:id",
   authMiddleware,
-  roleMiddleware("manageDocuments"),
   documentController.deleteDocument
 );
 
