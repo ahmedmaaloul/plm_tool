@@ -85,11 +85,21 @@ const getDocumentById = async (req, res) => {
     }
     req.params.projectId = document.reference.project.toString();
 
-    // Apply access control
-    const middleware = roleMiddleware("viewDocuments");
-    await middleware(req, res, () => {
-      res.json({ document });
-    });
+    if (!document.data || !(document.data instanceof Buffer)) {
+      return res.status(404).json({ error: "File data not found" });
+    }
+
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename=${document.filename || "file"}`
+    );
+    res.setHeader(
+      "Content-Type",
+      document.documentType || "application/octet-stream"
+    ); // e.g., 'image/jpeg' or 'application/pdf'
+
+    // Send the binary data (Buffer)
+    res.send(document.data);
   } catch (err) {
     console.error("Error fetching document:", err);
     res.status(500).json({ error: "Server error" });
@@ -164,24 +174,21 @@ const deleteDocument = async (req, res) => {
     req.params.projectId = document.reference.project.toString();
 
     // Apply access control
-    const middleware = roleMiddleware("manageDocuments");
-    await middleware(req, res, async () => {
-      // Remove the document from the reference's documents array
-      const reference = document.reference;
-      reference.documents.pull(document._id);
-      await reference.save();
+    // Remove the document from the reference's documents array
+    const reference = document.reference;
+    reference.documents.pull(document._id);
+    await reference.save();
 
-      await document.deleteOne();
+    await document.deleteOne();
 
-      // Create an audit log entry
-      const auditLog = new AuditLog({
-        user: req.user.userId,
-        action: `Deleted document '${document.filename}'`,
-      });
-      await auditLog.save();
-
-      res.json({ message: "Document deleted successfully" });
+    // Create an audit log entry
+    const auditLog = new AuditLog({
+      user: req.user.userId,
+      action: `Deleted document '${document.filename}'`,
     });
+    await auditLog.save();
+
+    res.json({ message: "Document deleted successfully" });
   } catch (err) {
     console.error("Error deleting document:", err);
     res.status(500).json({ error: "Server error" });

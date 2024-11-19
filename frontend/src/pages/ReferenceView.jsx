@@ -82,15 +82,65 @@ const ReferenceView = () => {
     setVersion(e.target.value);
   };
 
+  const handleDelete = async (documentId) => {
+    try {
+      await axios.delete(`http://localhost:5000/api/documents/${documentId}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setDocuments(documents.filter((doc) => doc._id !== documentId));
+    } catch (error) {
+      console.error("Error deleting document:", error);
+    }
+  };
+
+  const handleDownload = async (documentId) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/documents/${documentId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          responseType: "blob", // Important for downloading binary data
+        }
+      );
+
+      // Create a temporary link to trigger the download
+      const blob = new Blob([response.data], { type: response.data.type });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = response.data.name || "downloaded_file"; // Use the filename from the response
+      link.click();
+    } catch (error) {
+      console.error("Error downloading document:", error);
+    }
+  };
+
+  const convertFileToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        resolve(reader.result.split(",")[1]);
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
     formData.append("filename", file.name);
     formData.append("file", file);
-    formData.append("data", await file.arrayBuffer());
     formData.append("documentType", documentType);
     formData.append("version_string", Number(version));
     formData.append("referenceId", id);
+
+    // Convert file to base64 and append to the form data
+    const base64Data = await convertFileToBase64(file);
+    formData.append("data", base64Data); // Send base64 encoded string
 
     try {
       await axios.post(`http://localhost:5000/api/documents`, formData, {
@@ -158,6 +208,8 @@ const ReferenceView = () => {
         {documents.map((doc) => (
           <li key={doc._id}>
             {doc.filename} - Version: {doc.version}
+            <Button onClick={() => handleDownload(doc._id)}>Download</Button>
+            <Button onClick={() => handleDelete(doc._id)}>Delete</Button>
           </li>
         ))}
       </DocumentList>
