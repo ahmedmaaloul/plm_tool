@@ -1,19 +1,26 @@
-const Document = require('../models/Document');
-const Reference = require('../models/Reference');
-const AuditLog = require('../models/AuditLog');
+const Document = require("../models/Document");
+const Reference = require("../models/Reference");
+const AuditLog = require("../models/AuditLog");
 
 // Create a new Document
 const createDocument = async (req, res) => {
   try {
-    const { filename, data, documentType, version, referenceId } = req.body;
-
-    if (!filename || !data || !documentType || typeof version !== 'number' || !referenceId) {
-      return res.status(400).json({ error: 'All fields are required' });
+    const { filename, data, documentType, version_string, referenceId } =
+      req.body;
+    const version = Number(version_string);
+    if (
+      !filename ||
+      !data ||
+      !documentType ||
+      typeof version !== "number" ||
+      !referenceId
+    ) {
+      return res.status(400).json({ error: "All fields are required" });
     }
 
     const document = new Document({
       filename,
-      data: Buffer.from(data, 'base64'), // Assuming data is sent as base64 string
+      data: Buffer.from(data, "base64"), // Assuming data is sent as base64 string
       documentType,
       version,
       reference: referenceId,
@@ -33,10 +40,12 @@ const createDocument = async (req, res) => {
     });
     await auditLog.save();
 
-    res.status(201).json({ message: 'Document created successfully', document });
+    res
+      .status(201)
+      .json({ message: "Document created successfully", document });
   } catch (err) {
-    console.error('Error creating document:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error creating document:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -45,38 +54,45 @@ const getDocumentsByReferenceId = async (req, res) => {
   try {
     const { referenceId } = req.params;
 
-    const documents = await Document.find({ reference: referenceId }).select('-data');
+    const documents = await Document.find({ reference: referenceId }).select(
+      "-data"
+    );
 
     res.json({ documents });
   } catch (err) {
-    console.error('Error fetching documents:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching documents:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
 // Get a Document by ID
 const getDocumentById = async (req, res) => {
   try {
-    const document = await Document.findById(req.params.id).populate('reference', 'code project');
+    const document = await Document.findById(req.params.id).populate(
+      "reference",
+      "code project"
+    );
 
     if (!document) {
-      return res.status(404).json({ error: 'Document not found' });
+      return res.status(404).json({ error: "Document not found" });
     }
 
     // Set projectId for access control
     if (!document.reference.project) {
-      return res.status(400).json({ error: 'Reference is not associated with a project' });
+      return res
+        .status(400)
+        .json({ error: "Reference is not associated with a project" });
     }
     req.params.projectId = document.reference.project.toString();
 
     // Apply access control
-    const middleware = roleMiddleware('viewDocuments');
+    const middleware = roleMiddleware("viewDocuments");
     await middleware(req, res, () => {
       res.json({ document });
     });
   } catch (err) {
-    console.error('Error fetching document:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error fetching document:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
@@ -85,26 +101,31 @@ const updateDocument = async (req, res) => {
   try {
     const { filename, data, documentType, version } = req.body;
 
-    const document = await Document.findById(req.params.id).populate('reference', 'project');
+    const document = await Document.findById(req.params.id).populate(
+      "reference",
+      "project"
+    );
 
     if (!document) {
-      return res.status(404).json({ error: 'Document not found' });
+      return res.status(404).json({ error: "Document not found" });
     }
 
     // Set projectId for access control
     if (!document.reference.project) {
-      return res.status(400).json({ error: 'Reference is not associated with a project' });
+      return res
+        .status(400)
+        .json({ error: "Reference is not associated with a project" });
     }
     req.params.projectId = document.reference.project.toString();
 
     // Apply access control
-    const middleware = roleMiddleware('manageDocuments');
+    const middleware = roleMiddleware("manageDocuments");
     await middleware(req, res, async () => {
       // Update fields if provided
       if (filename) document.filename = filename;
-      if (data) document.data = Buffer.from(data, 'base64');
+      if (data) document.data = Buffer.from(data, "base64");
       if (documentType) document.documentType = documentType;
-      if (typeof version === 'number') document.version = version;
+      if (typeof version === "number") document.version = version;
 
       await document.save();
 
@@ -115,31 +136,35 @@ const updateDocument = async (req, res) => {
       });
       await auditLog.save();
 
-      res.json({ message: 'Document updated successfully', document });
+      res.json({ message: "Document updated successfully", document });
     });
   } catch (err) {
-    console.error('Error updating document:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error updating document:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 
 // Delete a Document
 const deleteDocument = async (req, res) => {
   try {
-    const document = await Document.findById(req.params.id).populate('reference');
+    const document = await Document.findById(req.params.id).populate(
+      "reference"
+    );
 
     if (!document) {
-      return res.status(404).json({ error: 'Document not found' });
+      return res.status(404).json({ error: "Document not found" });
     }
 
     // Set projectId for access control
     if (!document.reference.project) {
-      return res.status(400).json({ error: 'Reference is not associated with a project' });
+      return res
+        .status(400)
+        .json({ error: "Reference is not associated with a project" });
     }
     req.params.projectId = document.reference.project.toString();
 
     // Apply access control
-    const middleware = roleMiddleware('manageDocuments');
+    const middleware = roleMiddleware("manageDocuments");
     await middleware(req, res, async () => {
       // Remove the document from the reference's documents array
       const reference = document.reference;
@@ -155,11 +180,11 @@ const deleteDocument = async (req, res) => {
       });
       await auditLog.save();
 
-      res.json({ message: 'Document deleted successfully' });
+      res.json({ message: "Document deleted successfully" });
     });
   } catch (err) {
-    console.error('Error deleting document:', err);
-    res.status(500).json({ error: 'Server error' });
+    console.error("Error deleting document:", err);
+    res.status(500).json({ error: "Server error" });
   }
 };
 

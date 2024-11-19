@@ -86,9 +86,10 @@ const ReferenceView = () => {
     e.preventDefault();
     const formData = new FormData();
     formData.append("filename", file.name);
-    formData.append("data", await file.arrayBuffer()); // Convert file to ArrayBuffer
+    formData.append("file", file);
+    formData.append("data", await file.arrayBuffer());
     formData.append("documentType", documentType);
-    formData.append("version", version);
+    formData.append("version_string", Number(version));
     formData.append("referenceId", id);
 
     try {
