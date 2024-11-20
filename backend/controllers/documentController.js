@@ -1,16 +1,17 @@
 const Document = require("../models/Document");
 const Reference = require("../models/Reference");
 const AuditLog = require("../models/AuditLog");
-
+const mime = require("mime-types");
 // Create a new Document
 const createDocument = async (req, res) => {
   try {
-    const { filename, data, documentType, version_string, referenceId } =
-      req.body;
+    const { filename, version_string, referenceId } = req.body;
+    const documentType = mime.lookup(filename);
     const version = Number(version_string);
+    const file = req.file;
     if (
+      !file ||
       !filename ||
-      !data ||
       !documentType ||
       typeof version !== "number" ||
       !referenceId
@@ -18,18 +19,22 @@ const createDocument = async (req, res) => {
       return res.status(400).json({ error: "All fields are required" });
     }
 
+    const reference = await Reference.findById(referenceId);
+    if (!reference) {
+      return res.status(404).json({ error: "Reference not found" });
+    }
+
     const document = new Document({
       filename,
-      data: Buffer.from(data, "base64"), // Assuming data is sent as base64 string
       documentType,
       version,
       reference: referenceId,
+      file: file.buffer,
     });
 
     await document.save();
 
     // Add the document to the reference's documents array
-    const reference = await Reference.findById(referenceId);
     reference.documents.push(document._id);
     await reference.save();
 
@@ -83,23 +88,18 @@ const getDocumentById = async (req, res) => {
         .status(400)
         .json({ error: "Reference is not associated with a project" });
     }
+
     req.params.projectId = document.reference.project.toString();
 
-    if (!document.data || !(document.data instanceof Buffer)) {
-      return res.status(404).json({ error: "File data not found" });
-    }
+    let contentType = document.documentType || "application/octet-stream";
 
     res.setHeader(
       "Content-Disposition",
-      `attachment; filename=${document.filename || "file"}`
+      `attachment; filename="${document.filename}"`
     );
-    res.setHeader(
-      "Content-Type",
-      document.documentType || "application/octet-stream"
-    ); // e.g., 'image/jpeg' or 'application/pdf'
+    res.setHeader("Content-Type", contentType || "application/octet-stream");
 
-    // Send the binary data (Buffer)
-    res.send(document.data);
+    res.send(document.file);
   } catch (err) {
     console.error("Error fetching document:", err);
     res.status(500).json({ error: "Server error" });

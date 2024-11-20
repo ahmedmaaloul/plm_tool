@@ -11,7 +11,9 @@
     "axios": "^1.7.7",
     "chart.js": "^4.4.4",
     "framer-motion": "^11.11.1",
+    "gridfs-stream": "^1.1.1",
     "jwt-decode": "^4.0.0",
+    "multer": "^1.4.5-lts.1",
     "plm-tool": "file:..",
     "react": "^18.3.1",
     "react-chartjs-2": "^5.2.0",
@@ -20,6 +22,7 @@
     "react-router-dom": "^6.26.2",
     "react-scripts": "5.0.1",
     "styled-components": "^6.1.13",
+    "three": "^0.170.0",
     "web-vitals": "^2.1.4"
   },
   "scripts": {

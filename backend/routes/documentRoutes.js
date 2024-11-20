@@ -3,6 +3,9 @@ const router = express.Router();
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 const documentController = require("../controllers/documentController");
+const multer = require("multer");
+const upload = multer();
+const cors = require("cors");
 
 // Middleware to set projectId from referenceId
 async function setProjectIdFromReference(req, res, next) {
@@ -36,6 +39,7 @@ async function setProjectIdFromReference(req, res, next) {
 router.post(
   "/",
   authMiddleware,
+  upload.single("file"),
   documentController.createDocument
 );
 
@@ -47,20 +51,17 @@ router.get(
 );
 
 // Get a Document by ID
-router.get("/:id", authMiddleware, documentController.getDocumentById);
+router.get(
+  "/:id",
+  authMiddleware,
+  cors({ exposedHeaders: ["Content-Disposition"] }),
+  documentController.getDocumentById
+);
 
 // Update a Document
-router.put(
-  "/:id",
-  authMiddleware,
-  documentController.updateDocument
-);
+router.put("/:id", authMiddleware, documentController.updateDocument);
 
 // Delete a Document
-router.delete(
-  "/:id",
-  authMiddleware,
-  documentController.deleteDocument
-);
+router.delete("/:id", authMiddleware, documentController.deleteDocument);
 
 module.exports = router;

@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import { useParams, useNavigate } from "react-router-dom";
-import BOMDetails from "./bom/BOMDetails";
+import * as THREE from "three";
+import { STLLoader } from "three/examples/jsm/loaders/STLLoader";
 
 // Styled Components
 const Container = styled.div`
@@ -37,6 +38,8 @@ const ReferenceView = () => {
   const [file, setFile] = useState(null);
   const [documentType, setDocumentType] = useState("");
   const [version, setVersion] = useState(1);
+  const [previewFile, setPreviewFile] = useState(null);
+  const canvasRef = useRef(null);
 
   useEffect(() => {
     const fetchReferenceDetails = async () => {
@@ -107,46 +110,43 @@ const ReferenceView = () => {
         }
       );
 
+      const contentDisposition = response.headers["content-disposition"];
+
+      let filename = "downloaded_file";
+      if (contentDisposition) {
+        const matches = /filename="([^"]*)"/.exec(contentDisposition);
+        if (matches && matches[1]) {
+          filename = matches[1];
+        }
+      }
+
       // Create a temporary link to trigger the download
-      const blob = new Blob([response.data], { type: response.data.type });
+      const blob = new Blob([response.data], {
+        type: response.data.type,
+      });
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = response.data.name || "downloaded_file"; // Use the filename from the response
+      link.download = filename || "downloaded_file"; // Use the filename from the response
       link.click();
     } catch (error) {
       console.error("Error downloading document:", error);
     }
   };
 
-  const convertFileToBase64 = (file) => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        resolve(reader.result.split(",")[1]);
-      };
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
     formData.append("filename", file.name);
-    formData.append("file", file);
     formData.append("documentType", documentType);
     formData.append("version_string", Number(version));
     formData.append("referenceId", id);
-
-    // Convert file to base64 and append to the form data
-    const base64Data = await convertFileToBase64(file);
-    formData.append("data", base64Data); // Send base64 encoded string
+    formData.append("file", file);
 
     try {
       await axios.post(`http://localhost:5000/api/documents`, formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "application/json", // Change based on your server's expected content type
+          "Content-Type": "multipart/form-data", // Change based on your server's expected content type
         },
       });
       // Refresh the document list after submission
@@ -162,6 +162,54 @@ const ReferenceView = () => {
     } catch (error) {
       console.error("Error uploading document:", error);
     }
+  };
+
+  const handlePreview = (stlFile) => {
+    setPreviewFile(stlFile);
+  };
+
+  useEffect(() => {
+    if (previewFile && previewFile.type === "model/stl") {
+      loadSTLFile(previewFile);
+    }
+  }, [previewFile]);
+
+  const loadSTLFile = (stlFile) => {
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(
+      75,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      1000
+    );
+    const renderer = new THREE.WebGLRenderer();
+    renderer.setSize(500, 500); // Set size of the canvas
+    canvasRef.current.appendChild(renderer.domElement);
+
+    const light = new THREE.AmbientLight(0x404040); // Soft white light
+    scene.add(light);
+
+    // Add a directional light
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    directionalLight.position.set(5, 5, 5).normalize();
+    scene.add(directionalLight);
+
+    const loader = new STLLoader();
+    loader.load(URL.createObjectURL(stlFile), (geometry) => {
+      const material = new THREE.MeshBasicMaterial({ color: 0x0055ff });
+      const mesh = new THREE.Mesh(geometry, material);
+      scene.add(mesh);
+      camera.position.z = 5;
+
+      const animate = () => {
+        requestAnimationFrame(animate);
+        mesh.rotation.x += 0.01;
+        mesh.rotation.y += 0.01;
+        renderer.render(scene, camera);
+      };
+
+      animate();
+    });
   };
 
   if (loading) {
@@ -188,13 +236,6 @@ const ReferenceView = () => {
       <DocumentForm onSubmit={handleSubmit}>
         <input type="file" onChange={handleFileChange} required />
         <input
-          type="text"
-          placeholder="Document Type"
-          value={documentType}
-          onChange={handleDocumentTypeChange}
-          required
-        />
-        <input
           type="number"
           placeholder="Version"
           value={version}
@@ -208,11 +249,15 @@ const ReferenceView = () => {
         {documents.map((doc) => (
           <li key={doc._id}>
             {doc.filename} - Version: {doc.version}
+            {doc.documentType === "model/stl" && (
+              <Button onClick={() => handlePreview(doc.file)}>Preview</Button>
+            )}
             <Button onClick={() => handleDownload(doc._id)}>Download</Button>
             <Button onClick={() => handleDelete(doc._id)}>Delete</Button>
           </li>
         ))}
       </DocumentList>
+      <div ref={canvasRef} style={{ width: "500px", height: "500px" }}></div>
       <Button onClick={() => navigate(-1)}>Back</Button>{" "}
       {/* Button to go back */}
     </Container>
