@@ -3,6 +3,8 @@ const Product = require("../models/Product");
 const Project = require("../models/Project");
 const BOM = require("../models/BOM");
 const AuditLog = require("../models/AuditLog");
+const ManufacturingProcess = require("../models/ManufacturingProcess");
+const BOMResource = require("../models/BOMResource");
 
 // Create a new Reference
 const createReference = async (req, res) => {
