@@ -1,11 +1,11 @@
 // src/context/AuthContext.js
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import { jwtDecode } from "jwt-decode";
+import {jwtDecode} from 'jwt-decode'; // Corrected the import
 
 export const AuthContext = createContext();
 
-const API_BASE_URL = 'http://localhost:5000'
+const API_BASE_URL = 'http://localhost:5000';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null); // User object including fullAccess
@@ -28,10 +28,10 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (username,password) => {
+  const login = async (username, password) => {
     try {
       // Perform login API call and get token
-      const response = await axios.post(`${API_BASE_URL}/api/users/login`, {username,password});
+      const response = await axios.post(`${API_BASE_URL}/api/users/login`, { username, password });
       const token = response.data.token;
       localStorage.setItem('token', token);
 
@@ -40,12 +40,29 @@ export const AuthProvider = ({ children }) => {
       setUser(userInfo);
 
       // Fetch user roles
-      console.log(`userInfo : ${userInfo}`)
-      console.log(`userInfo id : ${userInfo.userId}`)
+      console.log(`userInfo : ${JSON.stringify(userInfo)}`);
+      console.log(`userInfo id : ${userInfo.userId}`);
       await fetchUserRoles(userInfo.userId);
       return { success: true };
     } catch (err) {
       console.error('Login error:', err);
+      throw err;
+    }
+  };
+
+  // Added register function
+  const register = async (name, username, password) => {
+    try {
+      // Perform register API call
+      const response = await axios.post(`${API_BASE_URL}/api/users/register`, {
+        name,
+        username,
+        password,
+      });
+      // After successful registration, login the user
+      return await login(username, password);
+    } catch (err) {
+      console.error('Registration error:', err);
       throw err;
     }
   };
@@ -62,7 +79,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserRoles = async (userId) => {
     try {
-      console.log(userId)
+      console.log(userId);
       const response = await axios.get(`${API_BASE_URL}/api/roles/user/${userId}`, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -86,7 +103,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, userRoles, login, logout }}>
+    <AuthContext.Provider value={{ user, userRoles, login, logout, register }}>
       {children}
     </AuthContext.Provider>
   );
