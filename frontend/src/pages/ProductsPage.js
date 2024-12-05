@@ -80,7 +80,7 @@ const CloseButton = styled.button`
 
 // Customer Dashboard Component
 const ProductDashboard = () => {
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -184,16 +184,17 @@ const ProductDashboard = () => {
 
   // Delete a customer
   const deleteProduct = async (productId) => {
-    try {
-      await axios.delete(`${API_BASE_URL}/api/products/${productId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      fetchProducts();
-    } catch (err) {
-      console.error("Error deleting product:", err);
-    }
+    if (window.confirm("Are you sure you want to delete this product?"))
+      try {
+        await axios.delete(`${API_BASE_URL}/api/products/${productId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        fetchProducts();
+      } catch (err) {
+        console.error("Error deleting product:", err);
+      }
   };
 
   return (
@@ -224,13 +225,10 @@ const ProductDashboard = () => {
                   <Button onClick={() => handleModal(true, product)}>
                     Edit
                   </Button>
-                  <Button onClick={() => deleteProduct
-            (product._id)}>
+                  <Button onClick={() => deleteProduct(product._id)}>
                     Delete
                   </Button>
-                  <Button
-                    onClick={() => navigate(`/products/${product._id}`)}
-                  >
+                  <Button onClick={() => navigate(`/products/${product._id}`)}>
                     {" "}
                     {/* Redirect to Customer Details */}
                     View

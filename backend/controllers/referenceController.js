@@ -9,9 +9,10 @@ const BOMResource = require("../models/BOMResource");
 // Create a new Reference
 const createReference = async (req, res) => {
   try {
-    const { code, description, productId, projectId, bomId } = req.body;
+    console.log("REQ", req.body);
+    const { code, description, product_id, projectId, bomId } = req.body;
 
-    if (!code || !productId) {
+    if (!code || !product_id) {
       return res.status(400).json({ error: "Code and productId are required" });
     }
 
@@ -20,7 +21,7 @@ const createReference = async (req, res) => {
       return res.status(400).json({ error: "Reference code already exists" });
     }
 
-    const product = await Product.findById(productId);
+    const product = await Product.findById(product_id);
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
@@ -44,7 +45,7 @@ const createReference = async (req, res) => {
     const reference = new Reference({
       code,
       description,
-      product: productId,
+      product: product_id,
       project: projectId || null,
       bom: bomId || null,
     });

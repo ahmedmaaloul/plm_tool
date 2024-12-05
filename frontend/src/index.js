@@ -1,10 +1,10 @@
-import React from 'react';
-import { createRoot } from 'react-dom/client';
-import App from './App';
-import { AuthProvider } from './context/AuthContext';
-import { ProjectProvider } from './context/ProjectContext';
+import React from "react";
+import { createRoot } from "react-dom/client";
+import App from "./App";
+import { AuthProvider } from "./context/AuthContext";
+import { ProjectProvider } from "./context/ProjectContext";
 
-const rootElement = document.getElementById('root');
+const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
 
 root.render(

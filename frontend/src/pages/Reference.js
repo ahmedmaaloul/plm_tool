@@ -177,6 +177,7 @@ const ReferenceDashboard = () => {
   // Add a new reference
   const addReference = async () => {
     try {
+      console.log("formData", formData);
       await axios.post(
         `${API_BASE_URL}/api/references`,
         { ...formData },
@@ -218,16 +219,17 @@ const ReferenceDashboard = () => {
 
   // Delete a reference
   const deleteReference = async (referenceId) => {
-    try {
-      await axios.delete(`${API_BASE_URL}/api/references/${referenceId}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-      fetchReferences();
-    } catch (err) {
-      console.error("Error deleting reference:", err);
-    }
+    if (window.confirm("Are yoou sure you want to delete this reference?"))
+      try {
+        await axios.delete(`${API_BASE_URL}/api/references/${referenceId}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        fetchReferences();
+      } catch (err) {
+        console.error("Error deleting reference:", err);
+      }
   };
 
   return (
