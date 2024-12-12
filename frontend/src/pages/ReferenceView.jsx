@@ -27,6 +27,39 @@ const DocumentList = styled.ul`
   padding: 0;
 `;
 
+const PreviewWindow = styled.div`
+  position: fixed;
+  top: 10%;
+  left: 10%;
+  width: 80vw; /* Set the width as per your design */
+  height: 80vh; /* Set the height as per your design */
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  border-radius: 8px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  overflow: visible; /* Allow the model to overflow the preview window */
+  max-width: none; /* No max-width constraint */
+  max-height: none; /* No max-height constraint */
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  color: white;
+  font-size: 24px;
+  border: none;
+  cursor: pointer;
+  z-index: 10000; /* Ensure button is above other content */
+  &:hover {
+    color: #ff5757;
+  }
+`;
 // Reference View Component
 const ReferenceView = () => {
   const { id } = useParams(); // Get the reference ID from the URL
@@ -168,10 +201,11 @@ const ReferenceView = () => {
   };
 
   const stlViewerStyle = {
-    top: 0,
-    left: 0,
-    width: "100vw",
-    height: "100vh",
+    width: "100%",
+    height: "100%",
+    objectFit: "contain", // Ensure the model scales within the container
+    borderRadius: "8px",
+    overflow: "hidden", // Hide anything overflowing from the container
   };
 
   if (loading) {
@@ -204,6 +238,10 @@ const ReferenceView = () => {
     console.log("Preview URL:", previewUrl);
   };
 
+  const handleClosePreview = () => {
+    setPreviewFile(null);
+  };
+
   return (
     <Container>
       <h1>{console.log(reference)}</h1>
@@ -224,12 +262,15 @@ const ReferenceView = () => {
       </DocumentForm>
       <h3>Documents:</h3>
       {previewFile && (
-        <StlViewer
-          style={stlViewerStyle}
-          orbitControls
-          shadows
-          url={previewFile}
-        />
+        <PreviewWindow>
+          <CloseButton onClick={handleClosePreview}>X</CloseButton>
+          <StlViewer
+            style={stlViewerStyle}
+            orbitControls
+            shadows
+            url={previewFile}
+          />
+        </PreviewWindow>
       )}
       <DocumentList>
         {documents.map((doc) => (
