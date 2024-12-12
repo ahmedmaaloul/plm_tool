@@ -3,6 +3,7 @@ import axios from "axios";
 import styled from "styled-components";
 import { useParams, useNavigate } from "react-router-dom";
 import { StlViewer } from "react-stl-viewer";
+import { Buffer } from "buffer";
 // Styled Components
 const Container = styled.div`
   padding: 20px;
@@ -69,6 +70,10 @@ const ReferenceView = () => {
 
     fetchReferenceDetails(); // Fetch reference details on component mount
   }, [id]);
+
+  useEffect(() => {
+    console.log("previewFile updated:", previewFile);
+  }, [previewFile]); // This will run whenever previewFile changes
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
@@ -162,36 +167,6 @@ const ReferenceView = () => {
     }
   };
 
-  const handlePreview = (stlFile) => {
-    console.log("PREVIEW");
-    console.log("TYPE", stlFile.type);
-    const blob = new Blob([stlFile], { type: "model/stl" });
-    console.log("BLOB", blob);
-
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-
-    const reader = new FileReader();
-
-    reader.onloadend = function () {
-      const arrayBuffer = reader.result;
-      const dataView = new DataView(arrayBuffer);
-      const bufferLength = arrayBuffer.byteLength;
-
-      console.log("Dataview bounds (size in bytes):", bufferLength);
-
-      const firstBytes = [];
-      for (let i = 0; i < Math.min(bufferLength, 10); i++) {
-        firstBytes.push(dataView.getUint8(i));
-      }
-      console.log("First few bytes in the DataView:", firstBytes);
-    };
-
-    reader.readAsArrayBuffer(blob);
-
-    setPreviewFile(link);
-  };
-
   const stlViewerStyle = {
     top: 0,
     left: 0,
@@ -211,6 +186,22 @@ const ReferenceView = () => {
 
   const handleViewBOMDetails = () => {
     navigate(`/boms/${reference.bom._id}`);
+  };
+
+  const handlePreview = (fileBuffer) => {
+    // Convert the buffer to a Blob
+    const blob = new Blob([Buffer.from(fileBuffer.data)], {
+      type: "application/sla",
+    });
+
+    // Create a URL for the Blob
+    const previewUrl = URL.createObjectURL(blob);
+
+    // Set the preview file URL
+    setPreviewFile(previewUrl);
+
+    // Optionally log the URL for debugging purposes
+    console.log("Preview URL:", previewUrl);
   };
 
   return (
