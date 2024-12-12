@@ -59,6 +59,7 @@ const ModalContent = styled.div`
   padding: 20px;
   border-radius: 10px;
   width: 400px;
+  position: relative;
 `;
 
 const Input = styled.input`
