@@ -225,9 +225,20 @@ const downloadInvoice = async (req, res) => {
  */
 const getInvoices = async (req, res) => {
   try {
-    const invoices = await Invoice.find()
-      .populate('project', 'title')
-      .populate('customer', 'name contactInfo');
+    const { projectId } = req.query; // Extract projectId from query parameters
+    let filter = {};
+
+    if (projectId) {
+      // Validate projectId format (assuming MongoDB ObjectId)
+      if (!projectId.match(/^[0-9a-fA-F]{24}$/)) {
+        return res.status(400).json({ error: 'Invalid projectId format' });
+      }
+      filter.project = projectId; // Filter invoices by projectId
+    }
+
+    const invoices = await Invoice.find(filter)
+      .populate('project', 'title') // Populate project title
+      .populate('customer', 'name contactInfo'); // Populate customer name and contact info
 
     res.json({ invoices });
   } catch (err) {
@@ -235,7 +246,6 @@ const getInvoices = async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 };
-
 /**
  * Get an Invoice by ID
  */
