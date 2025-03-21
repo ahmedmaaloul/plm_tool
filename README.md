@@ -1,4 +1,4 @@
-# **Product Lifecycle Management (PLM) System **
+# Product Lifecycle Management (PLM) System
 
 ## **Project Overview**
 The **PLM System** is a centralized platform designed to manage the lifecycle of Bena Yogurt's products, from development to distribution. This system optimizes production, enhances traceability, and streamlines operations using a robust database and workflow automation.
