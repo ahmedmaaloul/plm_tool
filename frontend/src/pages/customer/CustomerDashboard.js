@@ -5,7 +5,6 @@ import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 import { FiSearch } from "react-icons/fi";
 import { AiOutlinePlus, AiOutlineEdit, AiOutlineDelete, AiOutlineEye } from "react-icons/ai";
-
 // Styled Components
 const Container = styled.div`
   padding: 40px 20px;
@@ -14,7 +13,7 @@ const Container = styled.div`
 `;
 
 const Title = styled.h1`
-  color: #e30202;
+  color: #4267B2;
   text-align: center;
   margin-bottom: 40px;
 `;
@@ -47,12 +46,12 @@ const SearchBar = styled.input`
   transition: border 0.3s;
 
   &:focus {
-    border-color: #ff5757;
+    border-color: #4267B2;
   }
 `;
 
 const AddButton = styled.button`
-  background-color: #ff5757;
+  background-color: #4267B2;
   color: #fff7eb;
   padding: 12px 20px;
   border: none;
@@ -64,7 +63,7 @@ const AddButton = styled.button`
   transition: background-color 0.3s;
 
   &:hover {
-    background-color: #e04e4e;
+    background-color: #3758a5;
   }
 `;
 
@@ -82,7 +81,7 @@ const Table = styled.table`
 `;
 
 const Thead = styled.thead`
-  background-color: #ff5757;
+  background-color: #4267B2;
   color: white;
 `;
 
@@ -100,11 +99,11 @@ const Tr = styled.tr`
   border-bottom: 1px solid #ddd;
 
   &:nth-child(even) {
-    background-color: #ffecec;
+    background-color: #e5ecfb;
   }
 
   &:hover {
-    background-color: #ffdada;
+    background-color: #d0dbf7;
   }
 `;
 
@@ -121,14 +120,14 @@ const ActionButtons = styled.div`
 
 const IconButton = styled.button`
   background-color: transparent;
-  color: #ff5757;
+  color: #4267B2;
   border: none;
   cursor: pointer;
   font-size: 20px;
   transition: color 0.3s;
 
   &:hover {
-    color: #e04e4e;
+    color: #3758a5;
   }
 `;
 
@@ -155,7 +154,7 @@ const ModalContent = styled.div`
 
 const ModalTitle = styled.h3`
   margin-bottom: 20px;
-  color: #e30202;
+  color: #4267B2;
 `;
 
 const Label = styled.label`
@@ -175,12 +174,12 @@ const Input = styled.input`
   transition: border 0.3s;
 
   &:focus {
-    border-color: #ff5757;
+    border-color: #4267B2;
   }
 `;
 
 const SaveButton = styled.button`
-  background-color: #ff5757;
+  background-color: #4267B2;
   color: #fff7eb;
   padding: 12px 20px;
   border: none;
@@ -192,13 +191,13 @@ const SaveButton = styled.button`
   transition: background-color 0.3s;
 
   &:hover {
-    background-color: #e04e4e;
+    background-color: #3758a5;
   }
 `;
 
 const CloseButton = styled.button`
   background-color: transparent;
-  color: #ff5757;
+  color: #4267B2;
   border: none;
   font-size: 28px;
   position: absolute;
@@ -225,7 +224,7 @@ const CustomerDashboard = () => {
   const [currentCustomer, setCurrentCustomer] = useState(null);
   const [formData, setFormData] = useState({ name: "", contactInfo: "" });
 
-  const API_BASE_URL = "http://localhost:5000"; // Adjust as necessary
+  const API_BASE_URL = 'http://localhost:5005';
 
   useEffect(() => {
     fetchCustomers();

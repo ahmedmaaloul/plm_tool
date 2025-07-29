@@ -4,16 +4,74 @@ import { ProjectContext } from '../../context/ProjectContext';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
-import {
-  Container,
-  FormWrapper,
-  FormTitle,
-  FormSection,
-  SectionTitle,
-  ErrorMessage,
-} from '../../components/StyledComponents';
 import ProjectDetailsForm from '../../components/project/ProjectDetailsForm';
 import RolesManagement from '../../components/roles/RolesManagement';
+
+// ICONS (add react-icons if not present)
+import { FaProjectDiagram, FaUsers } from "react-icons/fa";
+import styled from 'styled-components';
+
+const Container = styled.div`
+  min-height: calc(100vh - 60px);
+  background: linear-gradient(135deg, #eaf1fb 0%, #f0f2f5 100%);
+  padding: 48px 0 64px 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+`;
+
+const Card = styled.div`
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 6px 24px rgba(66,103,178,0.11), 0 1.5px 5px rgba(66,103,178,0.06);
+  width: 100%;
+  max-width: 700px;
+  padding: 40px 36px 32px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+  position: relative;
+`;
+
+const Header = styled.h1`
+  color: #4267B2;
+  font-size: 2.1rem;
+  letter-spacing: -1px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 0.5rem;
+`;
+
+const Section = styled.section`
+  background: #f8faff;
+  border-radius: 14px;
+  box-shadow: 0 1.5px 5px rgba(66,103,178,0.06);
+  padding: 24px 22px 18px 22px;
+  margin-bottom: 0px;
+`;
+
+const SectionTitle = styled.h2`
+  color: #4267B2;
+  font-size: 1.18rem;
+  margin-bottom: 1.1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+`;
+
+const ErrorMessage = styled.div`
+  background: #ffe2e2;
+  color: #ba1b1b;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 1.05rem;
+  margin-bottom: 18px;
+  font-weight: 500;
+  text-align: center;
+`;
 
 const EditProject = () => {
   const { projectDetails, fetchProjectById, updateProject } = useContext(ProjectContext);
@@ -35,7 +93,7 @@ const EditProject = () => {
   const [references, setReferences] = useState([]);
   const [selectedReferenceId, setSelectedReferenceId] = useState('');
 
-  const API_BASE_URL = 'http://localhost:5000';
+  const API_BASE_URL = 'http://localhost:5005';
 
   // Fetch project details on mount
   useEffect(() => {
@@ -43,7 +101,6 @@ const EditProject = () => {
       try {
         await fetchProjectById(projectId);
       } catch (err) {
-        console.error(err);
         setError('Error fetching project details.');
       }
     };
@@ -52,8 +109,6 @@ const EditProject = () => {
 
   // Update project data when projectDetails are fetched
   useEffect(() => {
-    console.log(projectDetails)
-    console.log(projectDetails.reference)
     if (projectDetails && projectDetails.title && projectData.title === '') {
       setProjectData({
         title: projectDetails.title,
@@ -76,17 +131,14 @@ const EditProject = () => {
               Authorization: `Bearer ${localStorage.getItem('token')}`,
             },
           });
-
           const filteredUsers = usersResponse.data.users.filter(
             (u) => u._id !== projectDetails.creator
           );
           setUsers(filteredUsers);
         } catch (err) {
-          console.error(err);
           setError('Error fetching users.');
         }
       };
-
       getUsers();
     }
   }, [projectDetails]);
@@ -102,9 +154,7 @@ const EditProject = () => {
           },
         }
       );
-
       const roles = rolesResponse.data.roles;
-
       // Separate assigned and unassigned roles
       const assignedRolesList = roles.filter((role) => role.user);
       const availableRolesList = roles
@@ -114,7 +164,6 @@ const EditProject = () => {
       setAvailableRoles(availableRolesList);
       setAssignedRoles(assignedRolesList);
     } catch (err) {
-      console.error(err);
       setError('Error fetching roles.');
     }
   };
@@ -137,7 +186,6 @@ const EditProject = () => {
         });
         setProducts(productsResponse.data.products);
       } catch (err) {
-        console.error(err);
         setError('Error fetching products.');
       }
     };
@@ -159,7 +207,6 @@ const EditProject = () => {
           );
           setReferences(referencesResponse.data.references);
         } catch (err) {
-          console.error(err);
           setError('Error fetching references.');
         }
       } else {
@@ -206,11 +253,7 @@ const EditProject = () => {
           },
         }
       );
-
-      // Since the role is now assigned, we need to refetch roles
       await getRoles();
-
-      // Clear selections
       setSelectedUserId('');
       setSelectedRoleName('');
     } catch (err) {
@@ -230,8 +273,6 @@ const EditProject = () => {
           roleName,
         },
       });
-
-      // Since the role is now unassigned, we need to refetch roles
       await getRoles();
     } catch (err) {
       setError('Error removing role.');
@@ -246,7 +287,7 @@ const EditProject = () => {
         `${API_BASE_URL}/api/roles/project/${projectId}`,
         {
           roleName: newRoleName,
-          accessRights, // Include accessRights
+          accessRights,
         },
         {
           headers: {
@@ -254,11 +295,7 @@ const EditProject = () => {
           },
         }
       );
-
-      // Add new role to available roles
       setAvailableRoles((prevRoles) => [...prevRoles, newRoleName]);
-
-      // Refetch roles to update assignedRoles with accessRights
       await getRoles();
     } catch (err) {
       setError('Error adding role.');
@@ -275,12 +312,16 @@ const EditProject = () => {
 
   return (
     <Container>
-      <FormWrapper>
-        <FormTitle>Edit Project</FormTitle>
+      <Card>
+        <Header>
+          <FaProjectDiagram /> Edit Project
+        </Header>
         {error && <ErrorMessage>{error}</ErrorMessage>}
 
-        <FormSection>
-          <SectionTitle>Project Details</SectionTitle>
+        <Section>
+          <SectionTitle>
+            <FaProjectDiagram /> Project Details
+          </SectionTitle>
           <ProjectDetailsForm
             projectData={projectData}
             handleChange={handleChange}
@@ -292,10 +333,12 @@ const EditProject = () => {
             selectedReferenceId={selectedReferenceId}
             setSelectedReferenceId={setSelectedReferenceId}
           />
-        </FormSection>
+        </Section>
 
-        <FormSection>
-          <SectionTitle>Roles Management</SectionTitle>
+        <Section>
+          <SectionTitle>
+            <FaUsers /> Roles Management
+          </SectionTitle>
           <RolesManagement
             users={users}
             availableRoles={availableRoles}
@@ -308,8 +351,8 @@ const EditProject = () => {
             handleRemoveRole={handleRemoveRole}
             handleAddRole={handleAddRole}
           />
-        </FormSection>
-      </FormWrapper>
+        </Section>
+      </Card>
     </Container>
   );
 };

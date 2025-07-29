@@ -15,13 +15,17 @@ const Input = styled.input`
 `;
 
 const Button = styled.button`
-  background-color: #ff5757;
+  background-color: #4267B2;
   color: #fff7eb;
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   margin-top: 10px;
+
+  &:hover {
+    background-color: #3758a5;
+  }
 `;
 
 const Label = styled.label`
@@ -34,11 +38,12 @@ const ErrorMessage = styled.p`
   color: red;
 `;
 
+
 const CreateBOMForm = ({ referenceId, onBOMCreated }) => {
   const [name, setName] = useState('');
   const [error, setError] = useState('');
 
-  const API_BASE_URL = 'http://localhost:5000';
+  const API_BASE_URL = 'http://localhost:5005';
 
   const handleSubmit = async (e) => {
     e.preventDefault();

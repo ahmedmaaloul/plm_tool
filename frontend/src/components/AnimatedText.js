@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 const Animated = styled(motion.div)`
   font-size: 2rem;
   font-weight: bold;
-  color: #ff5757;
+  color: #4267B2;
   text-align: center;
   margin-top: 20px;
 
@@ -15,6 +15,7 @@ const Animated = styled(motion.div)`
     margin-top: 0;
   }
 `;
+
 
 const AnimatedText = () => {
   return (

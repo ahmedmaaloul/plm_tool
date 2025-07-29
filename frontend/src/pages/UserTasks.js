@@ -3,12 +3,11 @@ import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import styled from 'styled-components';
-
 // Styled components
 const PageContainer = styled.div`
   padding: 40px;
-  background: linear-gradient(135deg, #ff5757, #ffd1d1);
-  min-height: calc(100vh - 60px); /* Full height minus navbar */
+  background: linear-gradient(135deg, #4267B2, #d0dbf7);
+  min-height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -30,8 +29,8 @@ const TaskList = styled.ul`
 `;
 
 const TaskItem = styled.li`
-  background-color: #fff7eb;
-  border: 1px solid #ff5757;
+  background-color: #f0f4ff;
+  border: 1px solid #4267B2;
   border-radius: 10px;
   padding: 15px;
   margin: 10px 0;
@@ -53,13 +52,14 @@ const TaskDetails = styled.div`
 const StatusSelect = styled.select`
   padding: 8px;
   border-radius: 5px;
-  background-color: #ff5757;
+  background-color: #4267B2;
   color: #fff;
   border: none;
   font-size: 1rem;
   cursor: pointer;
+
   &:hover {
-    background-color: #e04e4e;
+    background-color: #3758a5;
   }
 `;
 
@@ -72,7 +72,7 @@ const Title = styled.h2`
 `;
 
 const ProjectTitle = styled.h3`
-  color: #ff5757;
+  color: #4267B2;
   margin-bottom: 10px;
   font-size: 1.5rem;
   font-weight: bold;
@@ -104,7 +104,7 @@ const UserTasks = () => {
   useEffect(() => {
     const fetchTasks = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/tasks/my-tasks', {
+        const response = await axios.get('http://localhost:5005/api/tasks/my-tasks', {
           headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         });
 
@@ -128,7 +128,7 @@ const UserTasks = () => {
 
   const handleStatusChange = async (taskId, newStatus) => {
     try {
-      await axios.put(`http://localhost:5000/api/tasks/${taskId}`, { status: newStatus }, {
+      await axios.put(`http://localhost:5005/api/tasks/${taskId}`, { status: newStatus }, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
       });
       // Refetch tasks after status change

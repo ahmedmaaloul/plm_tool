@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import axios from 'axios';
-
 const Input = styled.input`
   padding: 10px;
   margin-bottom: 20px;
@@ -21,14 +20,19 @@ const Select = styled.select`
 `;
 
 const Button = styled.button`
-  background-color: #ff5757;
+  background-color: #4267B2;
   color: #fff7eb;
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
   margin: 5px;
   cursor: pointer;
+
+  &:hover {
+    background-color: #3758a5;
+  }
 `;
+
 
 const AddManufacturingProcessForm = ({ bomId, onProcessAdded }) => {
   const [name, setName] = useState('');
@@ -38,7 +42,7 @@ const AddManufacturingProcessForm = ({ bomId, onProcessAdded }) => {
   const [resources, setResources] = useState([]);
   const [error, setError] = useState('');
 
-  const API_BASE_URL = 'http://localhost:5000';
+  const API_BASE_URL = 'http://localhost:5005';
 
   useEffect(() => {
     // Fetch available resources

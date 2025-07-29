@@ -8,12 +8,12 @@ const RegisterContainer = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  height: calc(100vh); /* Full height */
-  background-color: #fff7eb;
+  height: 100vh;
+  background-color: #f0f4ff;
 `;
 
 const FormWrapper = styled.div`
-  background-color: #ff5757;
+  background-color: #4267B2;
   padding: 40px;
   border-radius: 10px;
   width: 90%;
@@ -22,7 +22,7 @@ const FormWrapper = styled.div`
 `;
 
 const FormTitle = styled.h2`
-  color: #fff7eb;
+  color: #f0f4ff;
   text-align: center;
   margin-bottom: 20px;
 `;
@@ -33,7 +33,7 @@ const Form = styled.form`
 `;
 
 const Label = styled.label`
-  color: #fff7eb;
+  color: #f0f4ff;
   margin-bottom: 5px;
   font-weight: bold;
 `;
@@ -46,41 +46,43 @@ const Input = styled.input`
 `;
 
 const SubmitButton = styled.button`
-  background-color: #fff7eb;
-  color: #ff5757;
+  background-color: #f0f4ff;
+  color: #4267B2;
   padding: 10px;
   border-radius: 5px;
   font-weight: bold;
   transition: background-color 0.3s ease;
 
   &:hover {
-    background-color: #ffe6d1;
+    background-color: #d8e4fb;
   }
 `;
 
 const LoginLink = styled.p`
-  color: #fff7eb;
+  color: #f0f4ff;
   text-align: center;
   margin-top: 15px;
 
   a {
-    color: #ffe6d1;
+    color: #d8e4fb;
     font-weight: bold;
+    text-decoration: none;
 
     &:hover {
-      color: #fff7eb;
+      color: #f0f4ff;
     }
   }
 `;
 
 const ErrorMessage = styled.p`
-  color: #ffd6d6;
-  background-color: #ff5757;
+  color: #f0f4ff;
+  background-color: #4267B2;
   padding: 10px;
   border-radius: 5px;
   margin-bottom: 15px;
   text-align: center;
 `;
+
 
 const Register = () => {
   const navigate = useNavigate();

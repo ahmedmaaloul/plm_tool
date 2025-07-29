@@ -4,7 +4,7 @@ import axios from 'axios';
 
 export const ProjectContext = createContext();
 
-const API_BASE_URL = 'http://localhost:5000'; // Adjust the port if necessary
+const API_BASE_URL = 'http://localhost:5005'; // Adjust the port if necessary
 
 export const ProjectProvider = ({ children }) => {
   const [projects, setProjects] = useState([]);

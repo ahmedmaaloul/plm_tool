@@ -3,22 +3,22 @@ import React from "react";
 import styled, { keyframes } from "styled-components";
 import { FaPlus } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import LogoImage from "../assets/nobg-PLM.png"; // Ensure you have a logo image in the assets folder
+import LogoImage from "../assets/nobg-PLM.png"; // Make sure this file exists
 
-// Keyframes for bubble animation
+// Animation
 const float = keyframes`
   0% { transform: translateY(0); }
   50% { transform: translateY(-20px); }
   100% { transform: translateY(0); }
 `;
 
-// Styled components
+// Styled Components
 const HomeContainer = styled.div`
   position: relative;
   display: flex;
   flex-direction: row;
-  height: calc(100vh - 60px); /* Subtract navbar height */
-  background-color: #fff7eb;
+  height: calc(100vh - 60px);
+  background-color: #f0f4ff;
   overflow: hidden;
 
   @media screen and (max-width: 768px) {
@@ -26,7 +26,6 @@ const HomeContainer = styled.div`
   }
 `;
 
-// Large gradient bubble elements
 const Bubble = styled.div`
   position: absolute;
   border-radius: 50%;
@@ -50,7 +49,7 @@ const Bubble = styled.div`
 const LeftSection = styled.div`
   flex: 1;
   display: flex;
-  flex-direction: column; /* Arrange items vertically */
+  flex-direction: column;
   align-items: center;
   justify-content: center;
 `;
@@ -66,7 +65,7 @@ const RightSection = styled.div`
 
 const WelcomeText = styled.h1`
   font-size: 3rem;
-  color: #e30202;
+  color: #4267B2;
   text-align: center;
   margin-bottom: 20px;
 
@@ -77,7 +76,7 @@ const WelcomeText = styled.h1`
 
 const SubText = styled.p`
   font-size: 1.5rem;
-  color: #e30202;
+  color: #4267B2;
   text-align: center;
   max-width: 400px;
   line-height: 1.5;
@@ -88,8 +87,8 @@ const SubText = styled.p`
 `;
 
 const CreateButton = styled.button`
-  background-color: #ff5757;
-  color: #fff7eb;
+  background-color: #4267B2;
+  color: #f0f4ff;
   border-radius: 50px;
   padding: 20px 40px;
   font-size: 1.2rem;
@@ -99,7 +98,7 @@ const CreateButton = styled.button`
   transition: background-color 0.3s ease;
 
   &:hover {
-    background-color: #e04e4e;
+    background-color: #3758a5;
   }
 
   @media screen and (max-width: 768px) {
@@ -124,28 +123,33 @@ const Logo = styled.img`
 `;
 
 const Home = () => {
+  const navigate = useNavigate();
+
   return (
     <HomeContainer>
-      {/* Gradient bubbles */}
+      {/* Bubbles with updated gradient */}
       <Bubble
         size="400px"
         top="10%"
         left="5%"
-        gradient="linear-gradient(135deg, #ff5757, #ffd1d1)"
+        gradient="linear-gradient(135deg, #4267B2, #d0dbf7)"
       />
       <Bubble
         size="300px"
         top="50%"
         left="30%"
-        gradient="linear-gradient(135deg, #ffd1d1, #ff5757)"
+        gradient="linear-gradient(135deg, #d0dbf7, #4267B2)"
       />
 
-      <LeftSection></LeftSection>
+      <LeftSection />
 
       <RightSection>
         <Logo src={LogoImage} alt="Logo" />
         <WelcomeText>Welcome to Bena!</WelcomeText>
         <SubText>Immerse yourself in seamless product life management.</SubText>
+        <CreateButton onClick={() => navigate("/projects/create")}>
+          <PlusIcon /> Get Started
+        </CreateButton>
       </RightSection>
     </HomeContainer>
   );

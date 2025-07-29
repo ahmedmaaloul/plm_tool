@@ -34,6 +34,7 @@ const loginUser = async (req, res) => {
     if (!user) return res.status(400).json({ error: 'Invalid credentials' });
 
     const isMatch = await user.checkPassword(password);
+    console.log(`isMatch: ${isMatch}`); // Debugging line
     if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
 
     const payload = { userId: user._id, fullAccess: user.fullAccess };

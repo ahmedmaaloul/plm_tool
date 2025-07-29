@@ -4,13 +4,12 @@ import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrash, faEye } from '@fortawesome/free-solid-svg-icons';
-
 const Container = styled.div`
   padding: 20px;
 `;
 
 const Title = styled.h2`
-  color: #ff5757;
+  color: #4267B2;
   margin-bottom: 20px;
 `;
 
@@ -29,12 +28,16 @@ const Input = styled.input`
 `;
 
 const Button = styled.button`
-  background-color: #ff5757;
+  background-color: #4267B2;
   color: #fff7eb;
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+
+  &:hover {
+    background-color: #3758a5;
+  }
 `;
 
 const Table = styled.table`
@@ -43,13 +46,13 @@ const Table = styled.table`
   margin-bottom: 20px;
 
   th, td {
-    border: 1px solid #ff5757;
+    border: 1px solid #4267B2;
     padding: 10px;
     text-align: left;
   }
 
   th {
-    background-color: #ff5757;
+    background-color: #4267B2;
     color: #fff7eb;
   }
 `;
@@ -60,13 +63,17 @@ const Pagination = styled.div`
   margin-top: 20px;
 
   button {
-    background-color: #ff5757;
+    background-color: #4267B2;
     color: #fff7eb;
     border: none;
     padding: 10px;
     margin: 0 5px;
     border-radius: 5px;
     cursor: pointer;
+
+    &:hover {
+      background-color: #3758a5;
+    }
 
     &:disabled {
       background-color: #ddd;
@@ -86,9 +93,10 @@ const ActionButton = styled.button`
   }
 
   svg {
-    color: #ff5757;
+    color: #4267B2;
   }
 `;
+
 
 const BOMList = () => {
   const [boms, setBOMs] = useState([]);
@@ -99,7 +107,7 @@ const BOMList = () => {
   const [referenceFilter, setReferenceFilter] = useState('');
   const [filters, setFilters] = useState({});
 
-  const API_BASE_URL = 'http://localhost:5000';
+  const API_BASE_URL = 'http://localhost:5005';
 
   useEffect(() => {
     const fetchBOMs = async () => {

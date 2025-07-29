@@ -1,16 +1,15 @@
-// src/context/AuthContext.js
 import React, { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
-import {jwtDecode} from 'jwt-decode'; // Corrected the import
+import {jwtDecode} from 'jwt-decode'; 
 
 export const AuthContext = createContext();
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = 'http://localhost:5005'; 
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null); // User object including fullAccess
-  const [userRoles, setUserRoles] = useState([]); // User's roles with accessRights
-  const [loading, setLoading] = useState(true); // Loading state for initial auth check
+  const [user, setUser] = useState(null); 
+  const [userRoles, setUserRoles] = useState([]); 
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     // Check if the user is already logged in when the app loads

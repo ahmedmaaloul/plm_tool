@@ -10,7 +10,6 @@ import AddBOMResourceForm from "../../components/bom/AddBOMResourceForm";
 import AddManufacturingProcessForm from "../../components/bom/AddManufacturingProcessForm";
 import EditManufacturingProcessForm from "../../components/bom/EditManufacturingProcessForm";
 import EditBOMResourceForm from "../../components/bom/EditBOMResourceForm";
-
 const Container = styled.div`
   padding: 20px;
 `;
@@ -20,23 +19,27 @@ const Section = styled.div`
 `;
 
 const Title = styled.h2`
-  color: #ff5757;
+  color: #4267B2;
   margin-bottom: 20px;
 `;
 
 const SubTitle = styled.h3`
-  color: #ff5757;
+  color: #4267B2;
   margin-bottom: 15px;
 `;
 
 const Button = styled.button`
-  background-color: #ff5757;
+  background-color: #4267B2;
   color: #fff7eb;
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
   margin: 5px;
   cursor: pointer;
+
+  &:hover {
+    background-color: #3758a5;
+  }
 `;
 
 const Table = styled.table`
@@ -46,13 +49,13 @@ const Table = styled.table`
 
   th,
   td {
-    border: 1px solid #ff5757;
+    border: 1px solid #4267B2;
     padding: 10px;
     text-align: left;
   }
 
   th {
-    background-color: #ff5757;
+    background-color: #4267B2;
     color: #fff7eb;
   }
 `;
@@ -76,7 +79,7 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background-color: #fff7eb;
+  background-color: #f0f4ff;
   padding: 20px;
   border-radius: 10px;
   width: 600px;
@@ -87,13 +90,17 @@ const ModalContent = styled.div`
 
 const CloseButton = styled.button`
   background-color: transparent;
-  color: #ff5757;
+  color: #4267B2;
   border: none;
   font-size: 24px;
   position: absolute;
   top: 10px;
   right: 10px;
   cursor: pointer;
+
+  &:hover {
+    color: #3758a5;
+  }
 `;
 
 const ErrorMessage = styled.p`
@@ -108,6 +115,7 @@ const Input = styled.input`
   border-radius: 5px;
 `;
 
+
 const BOMDetails = () => {
   const { bomId } = useParams();
   const navigate = useNavigate();
@@ -121,7 +129,7 @@ const BOMDetails = () => {
   const [newBOMName, setNewBOMName] = useState("");
   const [error, setError] = useState("");
 
-  const API_BASE_URL = "http://localhost:5000";
+  const API_BASE_URL = 'http://localhost:5005';
   const [showEditResourceModal, setShowEditResourceModal] = useState(false);
   const [resourceToEdit, setResourceToEdit] = useState(null);
 

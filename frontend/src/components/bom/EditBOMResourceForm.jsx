@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import axios from "axios";
-
 const Form = styled.form`
   display: flex;
   flex-direction: column;
@@ -27,12 +26,16 @@ const ButtonContainer = styled.div`
 `;
 
 const Button = styled.button`
-  background-color: #ff5757;
+  background-color: #4267B2;
   color: #fff7eb;
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+
+  &:hover {
+    background-color: #3758a5;
+  }
 `;
 
 const ErrorMessage = styled.p`
@@ -47,7 +50,7 @@ const EditBOMResourceForm = ({
   const [quantity, setQuantity] = useState(resourceToEdit.quantity || 0);
   const [error, setError] = useState("");
 
-  const API_BASE_URL = "http://localhost:5000";
+  const API_BASE_URL = 'http://localhost:5005';
 
   const handleUpdateResource = async (e) => {
     e.preventDefault();

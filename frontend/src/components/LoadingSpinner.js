@@ -4,7 +4,7 @@ import styled from 'styled-components';
 
 const Spinner = styled.div`
   border: 8px solid #fff7eb;
-  border-top: 8px solid #ff5757;
+  border-top: 8px solid #4267B2;
   border-radius: 50%;
   width: 60px;
   height: 60px;
@@ -17,6 +17,7 @@ const Spinner = styled.div`
     }
   }
 `;
+
 
 const LoadingSpinner = () => {
   return <Spinner />;

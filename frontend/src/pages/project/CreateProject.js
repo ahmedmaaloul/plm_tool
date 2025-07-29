@@ -6,7 +6,7 @@ import styled from 'styled-components';
 
 const Container = styled.div`
   padding: 20px;
-  background-color: #fff7eb;
+  background-color: #f0f4ff;
   min-height: calc(100vh - 60px); /* Adjust if you have a fixed header */
   display: flex;
   align-items: center;
@@ -14,7 +14,7 @@ const Container = styled.div`
 `;
 
 const FormWrapper = styled.div`
-  background-color: #ff5757;
+  background-color: #4267B2;
   padding: 40px;
   border-radius: 10px;
   width: 90%;
@@ -23,7 +23,7 @@ const FormWrapper = styled.div`
 `;
 
 const FormTitle = styled.h2`
-  color: #fff7eb;
+  color: #f0f4ff;
   text-align: center;
   margin-bottom: 20px;
 `;
@@ -38,7 +38,7 @@ const FormGroup = styled.div`
 `;
 
 const Label = styled.label`
-  color: #fff7eb;
+  color: #f0f4ff;
   margin-bottom: 5px;
   font-weight: bold;
   display: block;
@@ -52,8 +52,8 @@ const Input = styled.input`
 `;
 
 const SubmitButton = styled.button`
-  background-color: #fff7eb;
-  color: #ff5757;
+  background-color: #f0f4ff;
+  color: #4267B2;
   padding: 10px;
   border-radius: 5px;
   font-weight: bold;
@@ -63,13 +63,13 @@ const SubmitButton = styled.button`
   margin-top: 10px;
 
   &:hover {
-    background-color: #ffe6d1;
+    background-color: #d8e4fb;
   }
 `;
 
 const ErrorMessage = styled.p`
-  color: #ffd6d6;
-  background-color: #ff5757;
+  color: #f0f4ff;
+  background-color: #4267B2;
   padding: 10px;
   border-radius: 5px;
   margin-bottom: 15px;

@@ -3,144 +3,184 @@ import React, { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import styled from "styled-components";
+// ICONS
+import { FaHome, FaTasks, FaSignOutAlt, FaUser, FaBoxOpen, FaCubes, FaUsers, FaProjectDiagram, FaList, FaWarehouse, FaClipboardList, FaLock, FaSignInAlt } from "react-icons/fa";
 
-// Styled Components
+// Navbar styling
 const NavbarContainer = styled.nav`
-  background-color: #ff5757;
-  padding: 15px;
+  background-color: #4267B2;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 18px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  z-index: 100;
 `;
 
 const NavbarList = styled.ul`
-  list-style: none;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  list-style: none;
   margin: 0;
   padding: 0;
+  flex: 1;
 `;
 
 const NavbarItem = styled.li`
-  margin: 0 15px;
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+
+  &:last-child {
+    margin-right: 0;
+  }
 `;
 
-const StyledLink = styled(Link)`
-  text-decoration: none;
-  color: #fff7eb;
-  font-size: 16px;
-  font-weight: bold;
+const NavbarSpacer = styled.div`
+  flex: 1;
+`;
+
+const IconButton = styled(Link)`
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.25rem;
+  padding: 7px 8px;
+  margin: 0 2px;
+  border-radius: 50%;
+  transition: background 0.15s, color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
   &:hover {
-    color: #ffd1d1;
+    background: #3758a5;
+    color: #e4eefd;
+  }
+`;
+
+const Tooltip = styled.span`
+  visibility: hidden;
+  width: max-content;
+  background-color: #222b;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 2px 10px;
+  position: absolute;
+  z-index: 111;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.82rem;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.18s;
+
+  ${IconButton}:hover & {
+    visibility: visible;
+    opacity: 1;
   }
 `;
 
 const LogoutButton = styled.button`
-  background-color: transparent;
-  color: #fff7eb;
-  border: 2px solid #fff7eb;
-  padding: 5px 15px;
-  font-size: 16px;
-  font-weight: bold;
+  background: #fff;
+  color: #4267B2;
+  border: none;
+  padding: 7px 10px;
+  border-radius: 50%;
   cursor: pointer;
-  border-radius: 5px;
+  font-size: 1.22rem;
+  margin-left: 2px;
+  margin-right: 4px;
+  display: flex;
+  align-items: center;
+  transition: background 0.18s, color 0.18s;
+
   &:hover {
-    background-color: #ffd1d1;
-    border-color: #ffd1d1;
-    color: #ff5757;
+    background: #e4eefd;
+    color: #3758a5;
   }
 `;
 
-// Navbar Component
 const Navbar = () => {
   const { user, userRoles, logout } = useContext(AuthContext);
-  const navigate = useNavigate(); // useNavigate for redirection after logout
+  const navigate = useNavigate();
 
   const hasAccess = (accessRight) => {
-    if (user && user.fullAccess) return true; // Admins have full access
+    if (user && user.fullAccess) return true;
     return userRoles.some((role) => role.accessRights.includes(accessRight));
   };
 
   const handleLogout = () => {
     logout();
-    navigate("/login"); // Redirect to login after logout
+    navigate("/login");
   };
 
   return (
     <NavbarContainer>
       <NavbarList>
         <NavbarItem>
-          <StyledLink to="/">Home</StyledLink>
+          <IconButton to="/"><FaHome /><Tooltip>Home</Tooltip></IconButton>
         </NavbarItem>
 
         {user ? (
           <>
             {user.fullAccess && (
-              <>
-                <NavbarItem>
-                  <StyledLink to="/admin-dashboard">Admin Dashboard</StyledLink>
-                </NavbarItem>
-                {/* Add other admin links */}
-              </>
+              <NavbarItem>
+                <IconButton to="/admin-dashboard"><FaLock /><Tooltip>Admin</Tooltip></IconButton>
+              </NavbarItem>
             )}
             <NavbarItem>
-              <StyledLink to="/my_tasks">My Tasks</StyledLink>
+              <IconButton to="/my_tasks"><FaTasks /><Tooltip>My Tasks</Tooltip></IconButton>
             </NavbarItem>
-
             {hasAccess("Product") && (
               <NavbarItem>
-                <StyledLink to="/products">Products</StyledLink>
+                <IconButton to="/products"><FaBoxOpen /><Tooltip>Products</Tooltip></IconButton>
               </NavbarItem>
             )}
-
-            {
-              hasAccess("Reference") && (
-                <NavbarItem>
-                  <StyledLink to="/references">References</StyledLink>
-                </NavbarItem>
-              )
-            }
-
+            {hasAccess("Reference") && (
+              <NavbarItem>
+                <IconButton to="/references"><FaClipboardList /><Tooltip>References</Tooltip></IconButton>
+              </NavbarItem>
+            )}
             {hasAccess("CustomersAndRequirements") && (
               <NavbarItem>
-                <StyledLink to="/customers">Customers</StyledLink>
-              </NavbarItem>
-            )}
-
-            {hasAccess("BOMAndSuppliers") && (
-              <NavbarItem>
-                <StyledLink to="/boms">BOMs</StyledLink>
+                <IconButton to="/customers"><FaUsers /><Tooltip>Customers</Tooltip></IconButton>
               </NavbarItem>
             )}
             {hasAccess("BOMAndSuppliers") && (
-              <NavbarItem>
-                <StyledLink to="/suppliers">Suppliers</StyledLink>
-              </NavbarItem>
-            )}
-            {hasAccess("BOMAndSuppliers") && (
-              <NavbarItem>
-                <StyledLink to="/resources">Resources</StyledLink>
-              </NavbarItem>
-            )}
-
-
-            {user.fullAccess && (
               <>
                 <NavbarItem>
-                  <StyledLink to="/projects">Projects</StyledLink>
+                  <IconButton to="/boms"><FaList /><Tooltip>BOMs</Tooltip></IconButton>
                 </NavbarItem>
-                {/* Add other admin links */}
+                <NavbarItem>
+                  <IconButton to="/suppliers"><FaWarehouse /><Tooltip>Suppliers</Tooltip></IconButton>
+                </NavbarItem>
+                <NavbarItem>
+                  <IconButton to="/resources"><FaCubes /><Tooltip>Resources</Tooltip></IconButton>
+                </NavbarItem>
               </>
             )}
-
+            {user.fullAccess && (
+              <NavbarItem>
+                <IconButton to="/projects"><FaProjectDiagram /><Tooltip>Projects</Tooltip></IconButton>
+              </NavbarItem>
+            )}
+            <NavbarSpacer />
             <NavbarItem>
-              <LogoutButton onClick={handleLogout}>Logout</LogoutButton>
+              <LogoutButton onClick={handleLogout} title="Logout">
+                <FaSignOutAlt />
+              </LogoutButton>
             </NavbarItem>
           </>
         ) : (
           <>
+            <NavbarSpacer />
             <NavbarItem>
-              <StyledLink to="/login">Login</StyledLink>
+              <IconButton to="/login"><FaSignInAlt /><Tooltip>Login</Tooltip></IconButton>
             </NavbarItem>
-            {/* Add other public links if necessary */}
           </>
         )}
       </NavbarList>

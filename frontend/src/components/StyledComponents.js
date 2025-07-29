@@ -3,7 +3,7 @@ import styled from 'styled-components';
 
 export const Container = styled.div`
   padding: 20px;
-  background-color: #fff7eb;
+  background-color: #f0f4ff;
   min-height: calc(100vh - 60px);
   display: flex;
   align-items: flex-start;
@@ -11,7 +11,7 @@ export const Container = styled.div`
 `;
 
 export const FormWrapper = styled.div`
-  background-color: #ff5757;
+  background-color: #4267B2;
   padding: 40px;
   border-radius: 10px;
   width: 100%;
@@ -20,7 +20,7 @@ export const FormWrapper = styled.div`
 `;
 
 export const FormTitle = styled.h2`
-  color: #fff7eb;
+  color: #f0f4ff;
   text-align: center;
   margin-bottom: 20px;
 `;
@@ -30,13 +30,13 @@ export const FormSection = styled.div`
 `;
 
 export const SectionTitle = styled.h3`
-  color: #fff7eb;
+  color: #f0f4ff;
   margin-bottom: 15px;
 `;
 
 export const ErrorMessage = styled.p`
-  color: #ffd6d6;
-  background-color: #ff5757;
+  color: #f0f4ff;
+  background-color: #4267B2;
   padding: 10px;
   border-radius: 5px;
   margin-bottom: 15px;
@@ -53,7 +53,7 @@ export const FormGroup = styled.div`
 `;
 
 export const Label = styled.label`
-  color: #fff7eb;
+  color: #f0f4ff;
   margin-bottom: 5px;
   font-weight: bold;
   display: block;
@@ -74,8 +74,8 @@ export const Select = styled.select`
 `;
 
 export const SubmitButton = styled.button`
-  background-color: #fff7eb;
-  color: #ff5757;
+  background-color: #f0f4ff;
+  color: #4267B2;
   padding: 10px;
   border-radius: 5px;
   font-weight: bold;
@@ -86,11 +86,12 @@ export const SubmitButton = styled.button`
   margin-right: 10px;
 
   &:hover {
-    background-color: #ffe6d1;
+    background-color: #d8e4fb;
   }
 `;
+
 export const Button = styled.button`
-  background-color: #007bff;
+  background-color: #4267B2;
   color: white;
   border: none;
   padding: 10px 15px;

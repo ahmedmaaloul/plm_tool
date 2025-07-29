@@ -4,126 +4,235 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import axios from 'axios';
 import CreateBOMForm from '../../components/bom/CreateBOMForm';
+import { 
+  FaEdit, 
+  FaTrash, 
+  FaFileDownload, 
+  FaPlus, 
+  FaTimes, 
+  FaFileInvoice, 
+  FaUsers, 
+  FaClipboardList, 
+  FaProjectDiagram 
+} from "react-icons/fa";
 
 const Container = styled.div`
-  padding: 20px;
+  padding: 40px 2vw;
+  background: linear-gradient(120deg, #f0f4ff 60%, #e9efff 100%);
+  min-height: calc(100vh - 60px);
 `;
 
-const Section = styled.div`
-  margin-bottom: 30px;
+const Section = styled.section`
+  background: rgba(255,255,255,0.92);
+  border-radius: 18px;
+  box-shadow: 0 2px 16px #4267b216;
+  padding: 28px 24px;
+  margin-bottom: 32px;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
 `;
 
 const Title = styled.h2`
-  color: #ff5757;
-  margin-bottom: 20px;
+  color: #4267B2;
+  font-weight: 800;
+  font-size: 2rem;
+  text-align: center;
+  margin-bottom: 24px;
+  letter-spacing: 1px;
 `;
 
 const SubTitle = styled.h3`
-  color: #ff5757;
-  margin-bottom: 15px;
+  color: #3758a5;
+  font-size: 1.19rem;
+  margin-bottom: 18px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+`;
+
+const ActionGroup = styled.div`
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+  flex-wrap: wrap;
 `;
 
 const Button = styled.button`
-  background-color: #ff5757;
-  color: #fff7eb;
-  padding: 10px 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #4267B2;
+  color: #fff;
+  padding: 9px 20px;
   border: none;
-  border-radius: 5px;
-  margin: 5px;
+  border-radius: 22px;
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 5px 0;
+  box-shadow: 0 2px 8px #4267b21a;
   cursor: pointer;
+  transition: background 0.18s, transform 0.14s;
+
+  &:hover {
+    background: #3758a5;
+    transform: scale(1.04);
+  }
 `;
 
 const WorkflowContainer = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));
+  gap: 18px;
+  margin-top: 20px;
 `;
 
 const WorkflowStepCard = styled.div`
-  border: 1px solid #ff5757;
-  padding: 15px;
-  width: calc(33.333% - 20px);
-  box-sizing: border-box;
-  position: relative;
-  background-color: #fff7eb;
-  border-radius: 5px;
+  background: #f5f9ffbb;
+  border: 1.5px solid #4267B2;
+  border-radius: 14px;
+  padding: 20px 16px;
+  box-shadow: 0 4px 12px #4267b212;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  transition: transform 0.13s;
+  &:hover {
+    transform: translateY(-2px) scale(1.018);
+    border: 1.5px solid #3758a5;
+  }
 `;
 
 const WorkflowStepTitle = styled.p`
   font-weight: bold;
-  font-size: 18px;
-  margin-bottom: 10px;
+  font-size: 1.11rem;
+  margin-bottom: 12px;
+  color: #4267B2;
 `;
 
 const TaskCard = styled.div`
-  border: 1px solid #ff5757;
-  padding: 10px;
+  background: #f6f9fd;
+  border: 1.5px solid #e6eafd;
+  border-radius: 10px;
+  padding: 16px;
   margin-bottom: 10px;
-  background-color: #fff7eb;
-  border-radius: 5px;
+  box-shadow: 0 2px 10px #4267b20a;
+  transition: box-shadow 0.13s;
+  &:hover {
+    box-shadow: 0 4px 20px #4267b215;
+  }
 `;
 
 const FilterSelect = styled.select`
-  padding: 8px;
-  margin-bottom: 10px;
-  width: 200px;
+  padding: 9px;
+  border-radius: 7px;
+  background: #f0f4ff;
+  color: #3758a5;
+  border: 1px solid #b5c9e5;
+  margin-bottom: 0;
+  margin-right: 10px;
+  min-width: 140px;
 `;
 
 const ModalOverlay = styled.div`
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(45, 61, 101, 0.24);
+  display: flex; justify-content: center; align-items: center;
   z-index: 1000;
 `;
 
 const ModalContent = styled.div`
-  background-color: #fff7eb;
-  padding: 20px;
-  border-radius: 10px;
-  width: 400px;
-  max-height: 80%;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 8px 28px #4267b22f;
+  padding: 38px 28px 30px 28px;
+  width: 98vw;
+  max-width: 420px;
+  max-height: 88vh;
   overflow-y: auto;
   position: relative;
+  animation: appear .23s cubic-bezier(.19,1,.22,1);
+
+  @keyframes appear {
+    0% { opacity: 0; transform: scale(.97);}
+    100% { opacity: 1; transform: none;}
+  }
 `;
 
 const CloseButton = styled.button`
-  background-color: transparent;
-  color: #ff5757;
+  background: transparent;
+  color: #4267B2;
   border: none;
-  font-size: 24px;
+  font-size: 2rem;
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 15px;
+  right: 22px;
   cursor: pointer;
+  transition: color 0.16s;
+
+  &:hover {
+    color: #d53b2d;
+  }
 `;
 
 const Input = styled.input`
-  padding: 8px;
-  margin: 5px 0;
+  padding: 9px;
+  margin: 5px 0 16px 0;
   width: 100%;
+  border: 1.2px solid #b5c9e5;
+  border-radius: 7px;
+  font-size: 1rem;
 `;
 
 const Select = styled.select`
-  padding: 8px;
-  margin: 5px 0;
+  padding: 9px;
+  margin: 5px 0 16px 0;
   width: 100%;
+  border: 1.2px solid #b5c9e5;
+  border-radius: 7px;
+  font-size: 1rem;
 `;
 
 const Label = styled.label`
-  font-weight: bold;
-  margin-top: 10px;
+  font-weight: 600;
+  color: #4267B2;
+  margin-top: 6px;
   display: block;
+  margin-bottom: 5px;
 `;
 
 const ErrorMessage = styled.p`
-  color: red;
+  color: #d53b2d;
+  font-weight: 500;
+  background: #fff4f4;
+  border-radius: 6px;
+  padding: 7px 15px;
 `;
+
+const InvoiceList = styled.ul`
+  padding-left: 0;
+  margin: 0;
+  list-style: none;
+`;
+
+const InvoiceItem = styled.li`
+  background: #f5f9ff;
+  border: 1.2px solid #c0d6ff;
+  border-radius: 10px;
+  padding: 12px 12px 8px 18px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #3758a5;
+`;
+
 
 const ProjectDetails = () => {
   const { projectDetails, fetchProjectById, deleteProject } = useContext(ProjectContext);
@@ -153,7 +262,7 @@ const ProjectDetails = () => {
 
   const navigate = useNavigate();
 
-  const API_BASE_URL = 'http://localhost:5000';
+  const API_BASE_URL = 'http://localhost:5005';
 
   useEffect(() => {
     const getProject = async () => {
@@ -474,31 +583,34 @@ const ProjectDetails = () => {
   if (!projectDetails) {
     return <p>Loading...</p>;
   }
-
-  return (
+return (
     <Container>
       <Title>Project Details</Title>
+
       <Section>
-        <h3>{projectDetails.title}</h3>
-        <div>
+        <SubTitle>
+          <FaProjectDiagram style={{color:"#4267B2"}} /> {projectDetails.title}
+        </SubTitle>
+        <ActionGroup>
           <Link to={`/projects/edit/${projectId}`}>
-            <Button>Edit Project</Button>
+            <Button><FaEdit /> Edit</Button>
           </Link>
-          <Button onClick={handleDelete}>Delete Project</Button>
-        </div>
+          <Button onClick={handleDelete}><FaTrash /> Delete</Button>
+        </ActionGroup>
       </Section>
 
-      {/* Reference Section */}
       {projectDetails.reference && (
         <Section>
-          <SubTitle>Reference Details</SubTitle>
+          <SubTitle>
+            <FaClipboardList style={{color:"#4267B2"}} /> Reference Details
+          </SubTitle>
           <p>
             <strong>Code:</strong> {projectDetails.reference.code}
           </p>
           <p>
             <strong>Description:</strong> {projectDetails.reference.description}
           </p>
-          <div>
+          <div style={{marginTop: 10}}>
             {bom ? (
               <Button onClick={() => navigate(`/boms/${bom._id}`)}>View BOM</Button>
             ) : (
@@ -508,75 +620,82 @@ const ProjectDetails = () => {
         </Section>
       )}
 
-      {/* Invoices Section */}
       <Section>
-        <SubTitle>Invoices</SubTitle>
+        <SubTitle>
+          <FaFileInvoice style={{color:"#4267B2"}} /> Invoices
+        </SubTitle>
         {invoices.length > 0 ? (
-          <>
-            <ul>
-              {invoices.map((invoice) => (
-                <li key={invoice._id}>
-                  {invoice.filename}{' '}
+          <InvoiceList>
+            {invoices.map((invoice) => (
+              <InvoiceItem key={invoice._id}>
+                {invoice.filename}
+                <ActionGroup>
                   <Button onClick={() => downloadInvoice(invoice._id, invoice.filename)}>
-                    Download
+                    <FaFileDownload /> Download
                   </Button>
-                  <Button onClick={() => deleteInvoice(invoice._id)}>Delete</Button>
-                </li>
-              ))}
-            </ul>
-          </>
+                  <Button onClick={() => deleteInvoice(invoice._id)}>
+                    <FaTrash /> Delete
+                  </Button>
+                </ActionGroup>
+              </InvoiceItem>
+            ))}
+          </InvoiceList>
         ) : (
           <p>No invoices available.</p>
         )}
         {bom ? (
-          <Button onClick={openSelectCustomerModal}>Create Invoice</Button>
+          <Button onClick={openSelectCustomerModal}><FaPlus /> Create Invoice</Button>
         ) : (
-          <p>You need to create a BOM before generating an invoice.</p>
+          <p style={{color:"#888"}}>You need to create a BOM before generating an invoice.</p>
         )}
       </Section>
 
-      {/* Workflow Section */}
       <Section>
-        <SubTitle>Workflow</SubTitle>
+        <SubTitle>
+          <FaUsers style={{color:"#4267B2"}} /> Workflow
+        </SubTitle>
         {workflow ? (
           <>
-            <div>
-              <Button onClick={() => setShowAddStepModal(true)}>Add Workflow Step</Button>
-            </div>
+            <Button onClick={() => setShowAddStepModal(true)}>
+              <FaPlus /> Add Workflow Step
+            </Button>
             <WorkflowContainer>
               {workflowSteps.map((step) => (
                 <WorkflowStepCard key={step._id}>
                   <WorkflowStepTitle>
                     {step.order}. {step.name}
                   </WorkflowStepTitle>
-                  <Button onClick={() => handleViewStepDetails(step)}>View Details</Button>
-                  <Button onClick={() => deleteWorkflowStep(step._id)}>Delete Step</Button>
+                  <ActionGroup>
+                    <Button onClick={() => handleViewStepDetails(step)}>Details</Button>
+                    <Button onClick={() => deleteWorkflowStep(step._id)}><FaTrash /> Delete</Button>
+                  </ActionGroup>
                 </WorkflowStepCard>
               ))}
             </WorkflowContainer>
           </>
         ) : (
-          <Button onClick={createWorkflow}>Create Workflow</Button>
+          <Button onClick={createWorkflow}><FaPlus /> Create Workflow</Button>
         )}
       </Section>
 
-      {/* Workflow Step Details */}
       {selectedStep && (
         <Section>
-          <SubTitle>Workflow Step: {selectedStep.name}</SubTitle>
-          <div>
+          <SubTitle>
+            <FaClipboardList style={{color:"#4267B2"}} /> Workflow Step: {selectedStep.name}
+          </SubTitle>
+          <div style={{display:'flex', alignItems:'center', gap:12, marginBottom:14}}>
             <FilterSelect
               value={selectedRoleFilter}
               onChange={(e) => setSelectedRoleFilter(e.target.value)}
             >
               <option value="">All Roles</option>
               {roles.map((role) => (
-                <option key={role._id} value={role._id}>
-                  {role.name}
-                </option>
+                <option key={role._id} value={role._id}>{role.name}</option>
               ))}
             </FilterSelect>
-            <Button onClick={() => setShowAddTaskModal(true)}>Add Task</Button>
+            <Button onClick={() => setShowAddTaskModal(true)}>
+              <FaPlus /> Add Task
+            </Button>
           </div>
           {filteredTasks.length > 0 ? (
             filteredTasks.map((task) => (
@@ -589,7 +708,9 @@ const ProjectDetails = () => {
                   Due Date:{' '}
                   {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date'}
                 </p>
-                <Button onClick={() => deleteTask(task._id)}>Delete Task</Button>
+                <Button onClick={() => deleteTask(task._id)}>
+                  <FaTrash /> Delete
+                </Button>
               </TaskCard>
             ))
           ) : (
@@ -602,7 +723,9 @@ const ProjectDetails = () => {
       {showAddStepModal && (
         <ModalOverlay>
           <ModalContent>
-            <CloseButton onClick={() => setShowAddStepModal(false)}>&times;</CloseButton>
+            <CloseButton onClick={() => setShowAddStepModal(false)}>
+              <FaTimes />
+            </CloseButton>
             <h3>Add Workflow Step</h3>
             <div>
               <Label>Step Name:</Label>
@@ -622,7 +745,9 @@ const ProjectDetails = () => {
                 onChange={(e) => setNewStepOrder(e.target.value)}
               />
             </div>
-            <Button onClick={addWorkflowStep}>Add Step</Button>
+            <Button onClick={addWorkflowStep}>
+              <FaPlus /> Add Step
+            </Button>
           </ModalContent>
         </ModalOverlay>
       )}
@@ -631,7 +756,9 @@ const ProjectDetails = () => {
       {showAddTaskModal && (
         <ModalOverlay>
           <ModalContent>
-            <CloseButton onClick={() => setShowAddTaskModal(false)}>&times;</CloseButton>
+            <CloseButton onClick={() => setShowAddTaskModal(false)}>
+              <FaTimes />
+            </CloseButton>
             <h3>Add Task to {selectedStep.name}</h3>
             <div>
               <Label>Task Description:</Label>
@@ -650,9 +777,7 @@ const ProjectDetails = () => {
               >
                 <option value="">Select Assigned Role</option>
                 {roles.map((role) => (
-                  <option key={role._id} value={role._id}>
-                    {role.name}
-                  </option>
+                  <option key={role._id} value={role._id}>{role.name}</option>
                 ))}
               </Select>
             </div>
@@ -665,7 +790,9 @@ const ProjectDetails = () => {
                 onChange={(e) => setNewTaskDueDate(e.target.value)}
               />
             </div>
-            <Button onClick={addTask}>Add Task</Button>
+            <Button onClick={addTask}>
+              <FaPlus /> Add Task
+            </Button>
           </ModalContent>
         </ModalOverlay>
       )}
@@ -674,7 +801,9 @@ const ProjectDetails = () => {
       {showSelectCustomerModal && (
         <ModalOverlay>
           <ModalContent>
-            <CloseButton onClick={() => setShowSelectCustomerModal(false)}>&times;</CloseButton>
+            <CloseButton onClick={() => setShowSelectCustomerModal(false)}>
+              <FaTimes />
+            </CloseButton>
             <h3>Select Customer</h3>
             <div>
               <Label>Customer:</Label>
@@ -690,7 +819,9 @@ const ProjectDetails = () => {
                 ))}
               </Select>
             </div>
-            <Button onClick={handleCreateInvoice}>Create Invoice</Button>
+            <Button onClick={handleCreateInvoice}>
+              <FaPlus /> Create Invoice
+            </Button>
           </ModalContent>
         </ModalOverlay>
       )}
@@ -703,18 +834,16 @@ const ProjectDetails = () => {
               onClick={() => {
                 setShowErrorModal(false);
                 setErrorMessage('');
-              }}
-            >
-              &times;
+              }}>
+              <FaTimes />
             </CloseButton>
             <h3>Error</h3>
-            <p>{errorMessage}</p>
+            <ErrorMessage>{errorMessage}</ErrorMessage>
             <Button
               onClick={() => {
                 setShowErrorModal(false);
                 setErrorMessage('');
-              }}
-            >
+              }}>
               Close
             </Button>
           </ModalContent>

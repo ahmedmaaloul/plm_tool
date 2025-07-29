@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
-
 // Styled Components
 const Container = styled.div`
   padding: 20px;
@@ -14,7 +13,7 @@ const Table = styled.table`
 `;
 
 const Th = styled.th`
-  background-color: #ff5757;
+  background-color: #4267B2;
   color: white;
   padding: 10px;
   text-align: left;
@@ -26,13 +25,17 @@ const Td = styled.td`
 `;
 
 const Button = styled.button`
-  background-color: #ff5757;
-  color: #fff7eb;
+  background-color: #4267B2;
+  color: #f0f4ff;
   padding: 10px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   margin: 5px;
+
+  &:hover {
+    background-color: #3758a5;
+  }
 `;
 
 const SearchBar = styled.input`
@@ -55,7 +58,7 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background-color: #fff7eb;
+  background-color: #f0f4ff;
   padding: 20px;
   border-radius: 10px;
   width: 400px;
@@ -76,14 +79,19 @@ const Select = styled.select`
 
 const CloseButton = styled.button`
   background-color: transparent;
-  color: #ff5757;
+  color: #4267B2;
   border: none;
   font-size: 24px;
   position: absolute;
   top: 10px;
   right: 10px;
   cursor: pointer;
+
+  &:hover {
+    color: #3758a5;
+  }
 `;
+
 
 // Reference Dashboard Component
 const ReferenceDashboard = () => {
@@ -101,7 +109,7 @@ const ReferenceDashboard = () => {
   });
   const [products, setProducts] = useState([]);
 
-  const API_BASE_URL = "http://localhost:5000"; // Adjust as necessary
+  const API_BASE_URL = 'http://localhost:5005';
 
   useEffect(() => {
     fetchReferences();

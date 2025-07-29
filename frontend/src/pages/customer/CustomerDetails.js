@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import styled from 'styled-components';
-
 // Styled Components
 const Container = styled.div`
   padding: 20px;
@@ -14,12 +13,12 @@ const Table = styled.table`
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 20px;
-  background-color: #fff7eb;
+  background-color: #f0f4ff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 `;
 
 const Th = styled.th`
-  background-color: #ff5757;
+  background-color: #4267B2;
   color: white;
   padding: 10px;
   text-align: left;
@@ -39,7 +38,7 @@ const SubTable = styled.table`
 `;
 
 const SubTh = styled.th`
-  background-color: #ffa07a;
+  background-color: #5b80d6;
   color: white;
   padding: 8px;
   text-align: left;
@@ -51,17 +50,25 @@ const SubTd = styled.td`
 `;
 
 const Button = styled.button`
-  background-color: #ff5757;
+  background-color: #4267B2;
   color: #fff7eb;
   padding: 10px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   margin: 5px;
+
+  &:hover {
+    background-color: #3758a5;
+  }
 `;
 
 const CollapseButton = styled(Button)`
-  background-color: #ffa07a;
+  background-color: #5b80d6;
+
+  &:hover {
+    background-color: #4a6cc1;
+  }
 `;
 
 const ModalOverlay = styled.div`
@@ -78,7 +85,7 @@ const ModalOverlay = styled.div`
 `;
 
 const ModalContent = styled.div`
-  background-color: #fff7eb;
+  background-color: #f0f4ff;
   padding: 20px;
   border-radius: 10px;
   width: 400px;
@@ -93,20 +100,25 @@ const Input = styled.input`
 
 const CloseButton = styled.button`
   background-color: transparent;
-  color: #ff5757;
+  color: #4267B2;
   border: none;
   font-size: 24px;
   position: absolute;
   top: 10px;
   right: 10px;
   cursor: pointer;
+
+  &:hover {
+    color: #3758a5;
+  }
 `;
 
 const SectionTitle = styled.h3`
   margin: 15px 0;
-  border-bottom: 2px solid #ff5757;
+  border-bottom: 2px solid #4267B2;
   padding-bottom: 5px;
 `;
+
 
 const CustomerDetails = () => {
   const { id } = useParams();
@@ -129,7 +141,7 @@ const CustomerDetails = () => {
   const [collapsedNeeds, setCollapsedNeeds] = useState({});
 
   // API Base URL
-  const API_BASE_URL = 'http://localhost:5000'; 
+  const API_BASE_URL = 'http://localhost:5005';
 
   useEffect(() => {
     fetchCustomerDetails();

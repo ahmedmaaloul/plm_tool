@@ -8,12 +8,17 @@ const GlobalStyles = createGlobalStyle`
     box-sizing: border-box;
   }
 
-  /* Global Fonts and Colors */
-  body {
-    font-family: 'Arial', sans-serif;
-    background-color: #fff7eb;
-    color: #333;
-  }
+ /* In your GlobalStyles or CSS */
+body {
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  background-color: #f0f2f5;
+  color: #1c1e21;
+}
+
+
 
   a {
     text-decoration: none;

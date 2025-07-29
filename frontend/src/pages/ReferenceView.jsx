@@ -1,98 +1,166 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
 import { useParams, useNavigate } from "react-router-dom";
 import { StlViewer } from "react-stl-viewer";
 import { Buffer } from "buffer";
+// Facebook-like blue shades
+const FB_PRIMARY = "#4267B2";
+const FB_DARK = "#3758a5";
+const FB_LIGHT = "#e9efff";
+const FB_TEXT = "#ffffff";
+
 // Styled Components
 const Container = styled.div`
-  padding: 20px;
+  padding: 40px;
+  max-width: 1000px;
+  margin: 40px auto 0 auto; /* Top margin added */
+  background-color: ${FB_LIGHT};
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+`;
+
+const Heading = styled.h1`
+  color: ${FB_PRIMARY};
+  margin-bottom: 10px;
+`;
+
+const SubHeading = styled.h2`
+  color: #333;
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+`;
+
+const SectionTitle = styled.h3`
+  margin-top: 30px;
+  color: ${FB_PRIMARY};
+  border-bottom: 2px solid ${FB_DARK};
+  padding-bottom: 5px;
 `;
 
 const Button = styled.button`
-  background-color: #ff5757;
-  color: white;
-  padding: 10px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+  background-color: ${FB_PRIMARY};
+  color: ${FB_TEXT};
+  padding: 10px 16px;
   margin: 5px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+
+  &:hover {
+    background-color: ${FB_DARK};
+  }
 `;
 
 const DocumentForm = styled.form`
-margin-top 20px`;
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+`;
+
+const StyledInput = styled.input`
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  flex: 1;
+  min-width: 200px;
+  outline: none;
+
+  &:focus {
+    border-color: ${FB_PRIMARY};
+  }
+`;
 
 const DocumentList = styled.ul`
   list-style-type: none;
-  padding: 0;
+  padding-left: 0;
+  margin-top: 20px;
+`;
+
+const DocumentItem = styled.li`
+  background-color: #f0f4ff;
+  border: 1px solid ${FB_PRIMARY};
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+`;
+
+const FileInfo = styled.div`
+  font-size: 1rem;
+  font-weight: 500;
+  color: #333;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
 `;
 
 const PreviewWindow = styled.div`
   position: fixed;
   top: 10%;
   left: 10%;
-  width: 80vw; /* Set the width as per your design */
-  height: 80vh; /* Set the height as per your design */
-  background-color: rgba(0, 0, 0, 0.8);
+  width: 80vw;
+  height: 80vh;
+  background-color: rgba(0, 0, 0, 0.9);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 9999;
-  border-radius: 8px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+  border-radius: 10px;
   padding: 10px;
-  overflow: visible; /* Allow the model to overflow the preview window */
-  max-width: none; /* No max-width constraint */
-  max-height: none; /* No max-height constraint */
 `;
 
 const CloseButton = styled.button`
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 12px;
+  right: 16px;
   background: transparent;
   color: white;
   font-size: 24px;
   border: none;
   cursor: pointer;
-  z-index: 10000; /* Ensure button is above other content */
+  z-index: 10000;
+
   &:hover {
-    color: #ff5757;
+    color: ${FB_PRIMARY};
   }
 `;
-// Reference View Component
+
+
 const ReferenceView = () => {
-  const { id } = useParams(); // Get the reference ID from the URL
+  const { id } = useParams();
   const navigate = useNavigate();
   const [reference1, setReference1] = useState(null);
   const [loading, setLoading] = useState(true);
   const [documents, setDocuments] = useState([]);
   const [file, setFile] = useState(null);
-  const [documentType, setDocumentType] = useState("");
   const [version, setVersion] = useState(1);
   const [previewFile, setPreviewFile] = useState(null);
 
   useEffect(() => {
     const fetchReferenceDetails = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:5000/api/references/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        setReference1(response.data); // Set the fetched reference data
+        const response = await axios.get(`http://localhost:5005/api/references/${id}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
+        setReference1(response.data);
 
-        const docResponse = await axios.get(
-          `http://localhost:5000/api/documents/reference/${id}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        const docResponse = await axios.get(`http://localhost:5005/api/documents/reference/${id}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
         setDocuments(docResponse.data.documents);
       } catch (error) {
         console.error("Error fetching reference details:", error);
@@ -101,171 +169,117 @@ const ReferenceView = () => {
       }
     };
 
-    fetchReferenceDetails(); // Fetch reference details on component mount
+    fetchReferenceDetails();
   }, [id]);
 
-  useEffect(() => {
-    console.log("previewFile updated:", previewFile);
-  }, [previewFile]); // This will run whenever previewFile changes
-
-  const handleFileChange = (e) => {
-    setFile(e.target.files[0]);
-  };
-
-  const handleVersionChange = (e) => {
-    setVersion(e.target.value);
-  };
+  const handleFileChange = (e) => setFile(e.target.files[0]);
+  const handleVersionChange = (e) => setVersion(e.target.value);
 
   const handleDelete = async (documentId) => {
-    if (window.confirm("Are you sure you want to delete this file?"))
+    if (window.confirm("Are you sure you want to delete this file?")) {
       try {
-        await axios.delete(
-          `http://localhost:5000/api/documents/${documentId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
-        setDocuments(documents.filter((doc) => doc._id !== documentId));
+        await axios.delete(`http://localhost:5005/api/documents/${documentId}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        });
+        setDocuments((prev) => prev.filter((doc) => doc._id !== documentId));
       } catch (error) {
         console.error("Error deleting document:", error);
       }
+    }
   };
 
   const handleDownload = async (documentId) => {
-    if (window.confirm("Are you sure you want to download this file?"))
+    if (window.confirm("Are you sure you want to download this file?")) {
       try {
-        const response = await axios.get(
-          `http://localhost:5000/api/documents/${documentId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-            responseType: "blob", // Important for downloading binary data
-          }
-        );
+        const response = await axios.get(`http://localhost:5005/api/documents/${documentId}`, {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+          responseType: "blob",
+        });
 
         const contentDisposition = response.headers["content-disposition"];
-
         let filename = "downloaded_file";
-        if (contentDisposition) {
-          const matches = /filename="([^"]*)"/.exec(contentDisposition);
-          if (matches && matches[1]) {
-            filename = matches[1];
-          }
-        }
+        const matches = /filename="([^"]*)"/.exec(contentDisposition);
+        if (matches && matches[1]) filename = matches[1];
 
-        // Create a temporary link to trigger the download
-        const blob = new Blob([response.data], {
-          type: response.data.type,
-        });
+        const blob = new Blob([response.data], { type: response.data.type });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = filename || "downloaded_file"; // Use the filename from the response
+        link.download = filename;
         link.click();
       } catch (error) {
         console.error("Error downloading document:", error);
       }
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!file) return;
+
     const formData = new FormData();
     formData.append("filename", file.name);
-    formData.append("documentType", documentType);
+    formData.append("documentType", file.type);
     formData.append("version_string", Number(version));
     formData.append("referenceId", id);
     formData.append("file", file);
 
     try {
-      await axios.post(`http://localhost:5000/api/documents`, formData, {
+      await axios.post(`http://localhost:5005/api/documents`, formData, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem("token")}`,
-          "Content-Type": "multipart/form-data", // Change based on your server's expected content type
+          "Content-Type": "multipart/form-data",
         },
       });
-      // Refresh the document list after submission
-      const docResponse = await axios.get(
-        `http://localhost:5000/api/documents/reference/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
-      );
-      setDocuments(docResponse.data.documents);
+      const updatedDocs = await axios.get(`http://localhost:5005/api/documents/reference/${id}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
+      setDocuments(updatedDocs.data.documents);
     } catch (error) {
       console.error("Error uploading document:", error);
     }
   };
 
-  const stlViewerStyle = {
-    width: "100%",
-    height: "100%",
-    objectFit: "contain", // Ensure the model scales within the container
-    borderRadius: "8px",
-    overflow: "hidden", // Hide anything overflowing from the container
-  };
-
-  if (loading) {
-    return <div>Loading...</div>; // Display loading state
-  }
-
-  if (!reference1) {
-    return <div>Reference not found</div>; // Handle case where reference is not found
-  }
-
-  const { reference } = reference1;
-
-  const handleViewBOMDetails = () => {
-    navigate(`/boms/${reference.bom._id}`);
-  };
-
   const handlePreview = (fileBuffer) => {
-    // Convert the buffer to a Blob
     const blob = new Blob([Buffer.from(fileBuffer.data)], {
       type: "application/sla",
     });
-
-    // Create a URL for the Blob
     const previewUrl = URL.createObjectURL(blob);
-
-    // Set the preview file URL
     setPreviewFile(previewUrl);
-
-    // Optionally log the URL for debugging purposes
-    console.log("Preview URL:", previewUrl);
   };
 
-  const handleClosePreview = () => {
-    setPreviewFile(null);
-  };
+  const handleClosePreview = () => setPreviewFile(null);
+
+  if (loading) return <Container>Loading...</Container>;
+  if (!reference1) return <Container>Reference not found.</Container>;
+
+  const { reference } = reference1;
 
   return (
     <Container>
-      <h1>{console.log(reference)}</h1>
-      <h1>Reference Details</h1>
-      <h2>Associated Product: {reference.product.name}</h2>
-      <h2>Reference code: {reference.code}</h2> {/* Display the product name */}
-      <Button onClick={handleViewBOMDetails}>View BOM Details</Button>
+      <Heading>Reference Details</Heading>
+      <SubHeading>Product: {reference.product.name}</SubHeading>
+      <SubHeading>Code: {reference.code}</SubHeading>
+      <Button onClick={() => navigate(`/boms/${reference.bom._id}`)}>View BOM Details</Button>
+
+      <SectionTitle>Upload New Document</SectionTitle>
       <DocumentForm onSubmit={handleSubmit}>
-        <input type="file" onChange={handleFileChange} required />
-        <input
+        <StyledInput type="file" onChange={handleFileChange} required />
+        <StyledInput
           type="number"
           placeholder="Version"
           value={version}
           onChange={handleVersionChange}
           required
         />
-        <Button type="submit">Upload Document</Button>
+        <Button type="submit">Upload</Button>
       </DocumentForm>
-      <h3>Documents:</h3>
+
+      <SectionTitle>Documents</SectionTitle>
       {previewFile && (
         <PreviewWindow>
-          <CloseButton onClick={handleClosePreview}>X</CloseButton>
+          <CloseButton onClick={handleClosePreview}>×</CloseButton>
           <StlViewer
-            style={stlViewerStyle}
+            style={{ width: "100%", height: "100%", objectFit: "contain" }}
             orbitControls
             shadows
             url={previewFile}
@@ -274,18 +288,19 @@ const ReferenceView = () => {
       )}
       <DocumentList>
         {documents.map((doc) => (
-          <li key={doc._id}>
-            {doc.filename} - Version: {doc.version}
-            {doc.documentType === "model/stl" && (
-              <Button onClick={() => handlePreview(doc.file)}>Preview</Button>
-            )}
-            <Button onClick={() => handleDownload(doc._id)}>Download</Button>
-            <Button onClick={() => handleDelete(doc._id)}>Delete</Button>
-          </li>
+          <DocumentItem key={doc._id}>
+            <FileInfo>{doc.filename} (v{doc.version})</FileInfo>
+            <ButtonGroup>
+              {doc.documentType === "model/stl" && (
+                <Button onClick={() => handlePreview(doc.file)}>Preview</Button>
+              )}
+              <Button onClick={() => handleDownload(doc._id)}>Download</Button>
+              <Button onClick={() => handleDelete(doc._id)}>Delete</Button>
+            </ButtonGroup>
+          </DocumentItem>
         ))}
       </DocumentList>
-      <Button onClick={() => navigate(-1)}>Back</Button>{" "}
-      {/* Button to go back */}
+      <Button onClick={() => navigate(-1)}>Back</Button>
     </Container>
   );
 };
